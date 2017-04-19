@@ -27,7 +27,7 @@ CREDENTIALS_FILE=.opaalicredentials
 function read_credentials {
     #param 1: filename
 
-    source $1
+    source "$1"
 }
 
 # print usage instructions and exit
@@ -43,33 +43,33 @@ function not_implemented {
     #param 1: commandName
     #param 2: functionality
 
-    echo "$1: Sorry, $2 is not implemented."
+    echo "$1: Sorry, $2 is not implemented." >/dev/stderr
     exit 2
 }
 
 # parse arguments
 function parse_arguments {
     #params: all command line parameters
-    if [ $# -lt 2 ]; then
+    if [ "$#" -lt 2 ]; then
         usage $0
     else
         # parse arguments
         while [ "$#" -gt 0 ]
         do
-            case $1 in
+            case "$1" in
                 -s)
                 shift
-                SENDER=$1
+                SENDER="$1"
                 shift
                 ;;
                 -r)
                 shift
-                RECIPIENT=$1
+                RECIPIENT="$1"
                 shift
                 ;;
                 -m)
                 shift
-                MESSAGE=$1
+                MESSAGE="$1"
                 shift
                 ;;
                 -f)
@@ -88,17 +88,17 @@ function parse_arguments {
                 -udh|\
                 -c|\
                 -hex)
-                not_implemented $0 $1
+                not_implemented "$0" "$1"
                 ;;
                 *)
-                usage $0
+                usage "$0"
                 ;;
             esac
         done
 
         # sender and recipient cannot be empty
-        if [[ -z ${SENDER}  || -z ${RECIPIENT} ]]; then
-            usage $0
+        if [[ -z "${SENDER}"  || -z "${RECIPIENT}" ]]; then
+            usage "$0"
         fi
     fi
 }
@@ -106,10 +106,10 @@ function parse_arguments {
 # main program
 function main {
     #params: all command line parameters
-    parse_arguments $*
+    parse_arguments "$@"
 }
 
 # call main program
-main $*
+main "$@"
 
 echo no actual functionality implemented yet..

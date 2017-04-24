@@ -1,6 +1,16 @@
 # Send
 Send is a command line bash-script modeled after the Content Gateway (CGW) *send* command line utility. It is used for sending SMS messages to mobile terminals.
 
+## Configuration
+Before you can use this script for sending messages you need to configure your service/application specific credentials.
+Set variables <code>applicationUserName</code> and <code>applicationPassword</code> either in the script itself or, preferrably, in a separate file which is not visible to outsiders. (Anyone who knows your credentials can send messages on your account.)
+The default filename for the credentials configuration file is <code>.opaalicredentials</code> in your current working directory.
+
+An example of .opaalicredentials (replace your own username and password):
+
+    applicationUserName="b535b0c5e5ae815cea82db6b32b5095a"
+    applicationPassword='1%AMCC?u'
+
 ## Sending SMS Messages
 With Send you can send SMS messages from a computer to a mobile terminal. To send a message, go to
 command prompt and enter the following command on the command line:
@@ -25,3 +35,5 @@ The _parameters_ are listed in the table below. The parameters in brackets are n
 |[-c]|Class number|The message class<p>Defines where the received message is stored in the mobile terminal. The classes are as follows:<p>0 = Displays the message (flash) like a cell broadcast, but does not store the message<p>1 = Mobile terminal specific<p>2 = The message is stored on the SIM card.<p>3 = Terminal equipment specific<p>Do not add this parameter to the command if you do not know how the mobile terminal functions with this parameter.|*NOT IMPLEMENTED*|
 |[-f]|Filename|The name of the file that contains the message<p>The message is sent from the file specified in the parameter. If you omit the –m or –f parameters from the command, Send sends the text from the console as the message.| |
 |[-hex]|Message in hex|The message content in hexadesimal format.<p>For example:<p>-hex 98FAE4E412BC|*NOT IMPLEMENTED*|
+
+Currently only a subset of the parameters are implemented (and some of the parameters are not relevant at all with Opaali API).

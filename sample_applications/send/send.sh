@@ -154,14 +154,14 @@ function parse_arguments {
 # read message from stdin into the specified variable
 function readMsg {
     #param 1: variableName
-	local separator=""
+    local separator=""
     local temp=""
     local line
     # read multiple lines into a single variable
     while read line
     do 
         temp="${temp}${separator}${line}"
-		separator="\n"
+        separator="\n"
     done
     # copy read message into specified variable
     eval "$1"=\${temp}
@@ -169,14 +169,14 @@ function readMsg {
 
 # authenticate and get access_token
 function authenticate {
-	#param 1: Application User Name
-	#param 2: Application Password
+    #param 1: Application User Name
+    #param 2: Application Password
     #global: access_token 
     #global: emsg
     
     # construct basic_auth string by combining username and password separated
     # with a colon and base64-encoding it all
-	basic_auth=$(echo -n "$1:$2" |base64)
+    basic_auth=$(echo -n "$1:$2" |base64)
 
     # call Opaali API and capture the interesting parts from the output"
     local output=$(curl -k -s -d grant_type=client_credentials https://api.sonera.fi/autho4api/v1/token --header "Content-Type:application/x-www-form-urlencoded" --header "Authorization: Basic $basic_auth" | grep -E 'access_token|error')
@@ -203,21 +203,21 @@ function authenticate {
 
 # make an outboundMessageRequest
 function outboundMessageRequest {
-	#param 1: recipientAddress
-	#param 2: message
+    #param 1: recipientAddress
+    #param 2: message
     #global: senderAddress - sender address string
     #global: senderNameString - sender name string with comma or empty string
     #global: access_token - access token string
     #global: deli - resource URL to be used when querying status
 
-	# urlencode + and :
-	local sender=$(echo -n "$senderAddress" | sed -e s/\+/%2B/g -e s/\:/%3A/g)
+    # urlencode + and :
+    local sender=$(echo -n "$senderAddress" | sed -e s/\+/%2B/g -e s/\:/%3A/g)
 
     # call Opaali API and capture the interesting parts from the output"
     local output=$(curl -k -s -d "{\"outboundMessageRequest\":{\"address\":[\"$1\"],\"senderAddress\":\"$senderAddress\",\"outboundSMSTextMessage\":{\"message\":\"$2\"}$senderNameString}}" --header 'Content-Type:application/json' --header "Authorization: Bearer $access_token" https://api.sonera.fi/production/messaging/v1/outbound/$sender/requests | grep -E 'resourceURL|error')
     
     
-   	# try grabbing deliveryURL from output
+       # try grabbing deliveryURL from output
     deli=$(echo "$output" | grep resourceURL | cut -d\: -f2- | tr -d "\" ")
 
     # post processing: check for success or failure
@@ -240,7 +240,7 @@ function outboundMessageRequest {
 
 # get delivery status
 function deliveryInfo {
-	#param 1: resourceURL
+    #param 1: resourceURL
     #global: deliveryStatus
     
     # call Opaali API and capture the interesting parts from the output"

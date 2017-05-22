@@ -1,5 +1,5 @@
 # Send
-Send is a command line bash-script modeled after the Content Gateway (CGW) *send* command line utility. It is used for sending SMS messages to mobile terminals.
+Send is a command line bash-script modeled after the Content Gateway (CGW) *send* command line utility. It is intended for lightweight, occasional use for sending SMS messages to mobile terminals.
 
 ## Configuration
 Before you can use this script for sending messages you need to configure your service/application specific credentials.
@@ -21,8 +21,8 @@ The _parameters_ are listed in the table below. The parameters in brackets are n
 
 |Parameter|Value|Definition|Comment|
 |---------|-----|----------|-------|
-|-s|Sender number|Your Short Number or other phone number| |
-|-r|Recipient number|The recipient’s mobile terminal number| |
+|-s|Sender number|Your Short Number or other phone number| to specify an alphanumeric sender name you should add the character '$' in front of the name|
+|-r|Recipient number|The recipient’s mobile terminal number|currently only one recipient is accepted |
 |[-t]|Timeout|The delivery notification timeout <p>The time (in seconds) that Send waits for a delivery notification.|*NOT IMPLEMENTED*|
 |[-bin \| -text]|Bin \| text|The message content is a binary or text message.|*NOT IMPLEMENTED*|
 |[-h]|Host - Provider Server address|Provider Server’s address <p>If Provider Server is installed in another computer, add this parameter to the command.|*NOT IMPLEMENTED*|
@@ -36,4 +36,33 @@ The _parameters_ are listed in the table below. The parameters in brackets are n
 |[-f]|Filename|The name of the file that contains the message<p>The message is sent from the file specified in the parameter. If you omit the –m or –f parameters from the command, Send sends the text from the console as the message.| |
 |[-hex]|Message in hex|The message content in hexadesimal format.<p>For example:<p>-hex 98FAE4E412BC|*NOT IMPLEMENTED*|
 
-Currently only a subset of the parameters are implemented (and some of the parameters are not relevant at all with Opaali API).
+Currently only a subset of the parameters are implemented (and some of the parameters are not relevant at all with Opaali API). As this is intended to help existing CGW uses to migrate to Opaali, all of the original parameters are documented here, with the comments column indicating which of the parameters are **not** available.
+
+Brackets indicate optional parameters and are **not** to be entered on the command line.
+
+### Usage examples ###
+
+#### when run without any parameters the usage syntax is shown ####
+```bash
+$ ./send.sh
+Usage: ./send.sh -s sender -r recipient [-m message] [-f filename]
+```
+#### alternatives for specifying the message text ####
+(these are mutually exclusive -- you can only use one of them at a time)
+- on command line:
+```
+send –s 0401235 –r 0401234 –m Hello!
+```
+- from file:
+```
+send –s 0401235 –r 0401234 –f msg.txt
+```
+- from stdin:
+```
+date | send –s 0401235 –r 0401234 
+```
+#### using an alhanumeric sender name ####
+(you need to escape the '$'-character to guard it from shell expansion)
+```
+send –s '$Opaali' –r 0401234 –m Hello!
+```

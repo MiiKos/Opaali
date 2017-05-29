@@ -1,1 +1,28 @@
+# Site settings
+title: The Opaali Blog
+header-img: img/blog_logo-main_1600x500.jpg
+email: opaali-tuki@teliacompany.com
+# copyright_name: The Opaali Blog/Telia
+description: "A Blog about migrating from Content Gateway to Opaali."
+# url: "http://yourdomain.com"
+# email_username:  
+email_support: opaali-tuki@teliacompany.com
+opaali_tuki: opaali-tuki@teliacompany.com
+opaali_portal: "http://developer.sonera.fi"
+opaali_forum: "http://developer.sonera.fi/g/forum"
+
+# Google Analytics
+# To enable google analytics, uncomment below line with a valid Google Tracking ID
+# google_tracking_id:
+
+# Build settings
+markdown: kramdown
+highlighter: rouge
+permalink: pretty
+paginate: 5
+exclude: ["less","node_modules","Gruntfile.js","package.json","README.md"]
+
+gems: [jekyll-paginate, jekyll-feed]
+
+avatar: img/OpaaliPortal.jpg
 

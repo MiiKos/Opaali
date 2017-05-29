@@ -1,0 +1,58 @@
+---
+layout:     post
+title:      "Welcome to the Opaali Blog"
+subtitle:   "Sometimes you feel like you're lost on another planet"
+date:       2017-05-29 11:00:00
+author:     "JPLa"
+header-img: "img/blog_logo-blank_1600x500.jpg"
+---
+
+This is a blog about Telia Finland's Operator Support Platform _Opaali_ -- specifically about its programming interface the **Opaali API**.
+
+# Welcome to the Opaali (API) Blog #
+
+If you have found your way here, you are probably painfully aware that you need to port your existing application, which uses __Content Gateway APIs__, to the new REST based __Opaali API__. If not, you may want to check the [Opaali Portal]({{site.opaali_portal}}) for more information.
+
+This blog is here to help you in using the __Opaali API__ from your own source code -- especially if you are migrating your existing application from _Content Gateway_. (But the information here is useful for those who are writing their first Opaali application from scratch, also).
+
+There will be _example code snippets_ (stored in this [GitHub repository](http://github.com/MiiKos/Opaali)\) with explanations in _blog posts_. There will also be a couple of _full applications_ in _source code form_ which you can use as almost drop-in replacements for some of the existing Content Gateway installations (but not all, unfortunately).
+
+## Who are we? ##
+
+Although this blog and the accompanying source code is maintained by the _Content Gateway to Opaali migration team_, this is __not part of the official Opaali product offering from Telia__. During the migration period the migration team will update the blog and code irregularly. What happens after the migration has completed and the migration team will have disbanded - we don't know. __The content of this GitHub repository comes with no guarantee from Telia whatsoever__.
+ 
+## Purpose of...(life?) ##
+
+The _main purpose_ of this blog and the code published here is to _ease the work load_ of [{{site.opaali_tuki}}](mailto:{{site.opaali_tuki}}) and the migration team through:
+
+* efficiently _distributing information_ about how to use the Opaali API (instead of answering individually by email to all the same questions)
+* _publishing_ _source code examples_ which are known to work (...at least at the time of publishing) so that you don't all have to repeat the same mistakes 
+
+This blog and source code is published _alongside their other work_ by the _migration team_ working at Telia. The published code is known to work at the time it is published, and if during the migration period it stops working, we try to update it. At the time of writing this, the Opaali API is still _evolving_ and _new functionality_ (some of it based on feedback from you, the existing CGW users!) is being added in _future releases_. Sometimes this will unfortunately _break existing code_. Sometimes the API documentation is _a bit vague_ in details, and the migration team tries to find the missing details by trial and error (and asking from the platform vendor's technical support, of course). _Sometimes we get it wrong, though_. Whenever we notice an issue that generates lots of queries to Opaali Support mailbox, we try to find time to write and post an article about it here. Or if the Opaali API behaviour changes. Or when there is new functionality.
+
+## What you can expect to learn here ##
+
+This blog concentrates on _programming issues_ related to using the __Opaali API__ (it should really have been called "The Opaali __API__ Blog").
+
+* there will be _mini programming courses_ on how to get started using the Opaali API, accompanied by very short _code snippets_ (we already tried doing this on the [Opaali Portal Forum]({{site.opaali_forum}}), but that didn't work too well...)
+
+* there will be a couple of _full applications_ targeted especially for existing CGW users. Initially the functionality will be quite minimal, but we intend to add more functionality and document some details of the code in _accompanying blog posts._
+ 
+ 
+There already is a __shell script__ based implementation of the command line ```send``` application that was distributed in the _CGW Provider Server_ installation package. It should be useful for _light production use_ (the original CGW version of the ```send``` command was not intended for heavy use either). We have done very limited testing with it, and we know that some versions of the ```curl``` command that it uses do not work without additional flags. 
+
+We also plan to publish a simple _Java based server_ that implements the __CGW HTTP interface__, but that one is not ready yet.
+
+## What you will not find out here ##
+
+We __cannot__ answer the question: "_When will Content Gateway be shut down?_". We don't know. And if we did (which we _don't!_), we couldn't tell you, because that kind of information can only be passed through the official _Opaali Support at Telia_. 
+
+There will not be many details about _how the Opaali Portal is used_, as this blog is about _programming_ using the Opaali API. There is some _good documentation_ on such topics in the __Resources__ section of the [Opaali Portal]({{site.opaali_portal}}).
+
+You won't find a _comment_ or _feedback_ form on this blog either, at least not initially. Although I said that this blog is maintained by the _migration team_ from Telia, the team is very small, and as the only programmer in the team it will probably be mostly just _me_ writing here. _Irregularly_. _When I have time_. _And something to write about_.
+
+However, you __can__ reach us through the [{{site.opaali_tuki}}](mailto:{{site.opaali_tuki}}) mailbox, all non-trivial questions will be passed on to the migration team. The _Opaali Portal Resources_ section contains the __official documentation__. The API documentation might be quite terse and sometimes hard to decipher. We will post more verbose explanations here in the blog and some of the other documentation will be published on the Opaali Portal. The Portal also contains a [Forum]({{site.opaali_forum}}) where you could ask your questions, but it has turned out that you will get an answer much quicker by sending your question to the [{{site.opaali_tuki}}](mailto:{{site.opaali_tuki}}) mailbox, so _I recommend doing just that_.
+
+## And finally ##
+Remember, official support is available from Telia through the [Opaali Portal]({{site.opaali_portal}}) and [{{site.opaali_tuki}}](mailto:{{site.opaali_tuki}}) -- all the material here on _GitHub_ comes __AS IS__, with no guarantee or warranty whatsover. 
+

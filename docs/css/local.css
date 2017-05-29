@@ -1,0 +1,73 @@
+/*
+* local modifications
+*/
+
+
+.site-avatar {
+  float: left;
+  width: 30px;
+  height: 30px;
+  margin-right: 15px;
+
+  img {
+    border-radius: 5px;
+  }
+}
+
+.site-avatar-large {
+  float: left;
+  width: 70px;
+  height: 70px;
+  margin-right: 15px;
+
+  img {
+    border-radius: 5px;
+  }
+}
+
+
+.post {
+  blockquote {
+    margin: 1.8em .8em;
+    border-left: 2px solid $gray;
+    padding: 0.1em 1em;
+    color: $gray;
+    font-size: 22px;
+    font-style: italic;
+  }
+
+  .comments {
+    margin-top: 10px;
+  }
+
+  .read-more {
+    text-transform: uppercase;
+    font-size: 15px;
+  }
+}
+
+.read-more {
+  text-transform: uppercase;
+  font-size: 15px;
+}
+
+.bio {
+  margin-left: 90px;
+}
+.shortbio  {
+  font-style: italic; 
+  background-color: lightgray;
+}
+hr.shortbio {
+    border: none;
+    height: 1px;
+    /* Set the hr color */
+    color: #333; /* old IE */
+    background-color: #333; /* Modern Browsers */
+}
+
+a.site-avatar img:hover,
+a.site-avatar img:focus {
+  cursor: default;
+}
+

@@ -1,0 +1,25 @@
+---
+layout: page
+title: "About"
+description: "What is this blog for."
+header-img: "img/blog_logo-blank_1600x500.jpg"
+unknown-img: "img/unknown.png"
+---
+<h2>What this blog is intended for...</h2>
+<p>This is a blog about Telia Finland's <i>Operator Support Platform</i> <a href="{{site.opaali_portal}}"><b>Opaali</b></a> &ndash; specifically about its programming interface the <b>Opaali API</b>.
+</p>
+<p>There will be <i>example code snippets</i>  and <i>blog posts</i> explaining the code. There will also be a couple of <i>full applications</i> in <i>source code form</i> for you to use as almost drop-in replacements for some of the existing Content Gateway installations.</p>
+
+<h3>Who are we?</h3>
+Although this blog and the accompanying source code is maintained by the <i>Content Gateway to Opaali migration team</i>, this is <b>not part of the official Opaali product offering from Telia</b>. During the migration period the migration team will update the blog and code <i>irregularly</i>. What happens after the migration has completed and the migration team will have disbanded &ndash; we don't know yet. The usual disclaimers apply (<i>"Any opinions expressed here are those of the writer's and not..., you know"</i>). <b>The content of this GitHub repository comes AS IS with no guarantee from Telia whatsoever</b>.
+<p></p>
+<br>
+<h4>Who are the People writing here:</h4>
+
+{% for a in site.data.authors %}
+    {% if a.name != "unknown" %}
+    <div><p><a name="{{a.name}}"></a><img class="site-avatar-large" src="{% if a.picture %}{{a.picture}}{% else %}{{ site.baseurl }}/{{ page.unknown-img }}{% endif %}"></div><div class="longbio"><b>{{a.name}}</b><br>{{a.longbio}}</div><hr>
+    {% endif %}
+{% endfor %}    
+
+<!-- <img src="{{ site.baseurl }}/img/post-sample-image.jpg" alt="Post Sample Image"> -->

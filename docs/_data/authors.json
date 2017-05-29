@@ -1,0 +1,12 @@
+[
+    {
+        "name" : "JPLa",
+        picture : "https://github.com/jlasanen.png",
+        shortbio: "<b>JPLa</b> is a member of the Content Gateway (CGW) to Opaali migration team, specialising in programming related issues and API usage.",
+        longbio: "<i>jlasanen</i> is a member of the Content Gateway (CGW) to Opaali migration team, specialising in programming related issues and API usage both in CGW and Opaali. He has long experience in SMS based services and integrating SMS servers into in-house applications. For the past few years he has been assisting <a href=\"http://www.telia.fi\">Telia</a> in CGW maintenance at <a href=\"http://www.cgi.fi\">CGI Finland</a>"
+    },
+    {
+        name : "unknown"
+    }
+
+]  

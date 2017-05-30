@@ -8,7 +8,7 @@ header-img: "img/space4.jpg"
 ---
 This article discusses some of the migration paths from specific **Content Gateway API**s towards the single **Opaali API**. There are dead ends to watch out -- for some of the CGW APIs there are no simple migration paths!
 
-![Content Gateway APIs](/img/OpaaliAPI.png)
+![Content Gateway APIs](img/OpaaliAPI.png)
 
 ### send command line utility ###
 While not strictly an _API_, some users just use the _sample applications provided with CGW Provider Server_ for their message sending needs. The command line send (or send.exe) application is simple to implement as a bash shell script using curl and other command line utilities.

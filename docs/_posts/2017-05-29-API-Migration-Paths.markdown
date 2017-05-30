@@ -2,7 +2,7 @@
 layout:     post
 title:      "API Migration Paths from CGW to Opaali"
 subtitle:   
-date:       2017-05-29 12:00:00
+date:       2017-05-29 12:30:00
 author:     "JPLa"
 header-img: "img/space4.jpg"
 ---

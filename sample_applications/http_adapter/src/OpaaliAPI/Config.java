@@ -16,23 +16,23 @@ import java.util.HashMap;
 
 // configuration data variables
 public class Config {
-	
+    
     public static HashMap <String, String> getConfig() {
-    	return (HashMap<String, String>) configSettings.clone();
+        return (HashMap<String, String>) configSettings.clone();
     }
     
     public static void setConfig(HashMap <String, String> config) {
-    	configSettings.putAll(config);
+        configSettings.putAll(config);
     }
     
     public static HashMap <String, String> getServiceConfig(String serviceName) {
-    	HashMap<String, String> h = (HashMap<String, String>) configSettings.clone();
-    	h.putAll(serviceSettings.get(serviceName));
-    	return h;
+        HashMap<String, String> h = (HashMap<String, String>) configSettings.clone();
+        h.putAll(serviceSettings.get(serviceName));
+        return h;
     }
     
     public static void setServiceConfig(String serviceName, HashMap <String, String> config) {
-    	serviceSettings.put(serviceName, config);
+        serviceSettings.put(serviceName, config);
     }
     
     // = end of public part ===================================================
@@ -41,8 +41,8 @@ public class Config {
     private static HashMap <String, HashMap <String, String>> serviceSettings;
     
     static {
-    	// set default config
-    	configSettings = new HashMap <String, String>();
+        // set default config
+        configSettings = new HashMap <String, String>();
         configSettings.put("API_HOST", "api.sonera.fi");
         serviceSettings = new HashMap <String, HashMap<String, String>>();
     }

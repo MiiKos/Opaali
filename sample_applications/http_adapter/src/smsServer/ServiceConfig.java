@@ -16,51 +16,51 @@ import java.util.HashMap;
 
 public class ServiceConfig extends HashMap<String, String> {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
-	
-	ServiceConfig(String serviceName, HashMap <String, String> config) {
-		if (config != null) {
-		    this.putAll(config);
-		}
-		this.serviceName = serviceName;
-	}
-	
-	
-	public String getServiceName() {
-		return serviceName;
-	}
-	
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+    
+    ServiceConfig(String serviceName, HashMap <String, String> config) {
+        if (config != null) {
+            this.putAll(config);
+        }
+        this.serviceName = serviceName;
+    }
+    
+    
+    public String getServiceName() {
+        return serviceName;
+    }
+    
 
-	public String getServiceType() {
-		if (serviceName != null) {
-			if (serviceType == null) {
-				serviceType = this.get("serviceType");
-			}
-			return serviceType;
-		}
-		return null;
-	}
+    public String getServiceType() {
+        if (serviceName != null) {
+            if (serviceType == null) {
+                serviceType = this.get("serviceType");
+            }
+            return serviceType;
+        }
+        return null;
+    }
 
- 	public String getConfigEntry(String key) {
-		return this.get(key);
-	}
-	
-	public int getConfigEntryInt(String key) {
-		String s = this.get(key);
-		if (s != null) {
-			return Integer.parseInt(s);
-		}
-		return -1;
-	}
-	
-	//= end of public part ====================================================
+     public String getConfigEntry(String key) {
+        return this.get(key);
+    }
+    
+    public int getConfigEntryInt(String key) {
+        String s = this.get(key);
+        if (s != null) {
+            return Integer.parseInt(s);
+        }
+        return -1;
+    }
+    
+    //= end of public part ====================================================
 
-	private ServiceConfig() {}
-	
-	private String serviceName = null;
-	private String serviceType = null;
-	
+    private ServiceConfig() {}
+    
+    private String serviceName = null;
+    private String serviceType = null;
+    
 }

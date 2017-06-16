@@ -13,7 +13,7 @@
 package OpaaliAPI;
 
 public interface LogWriter {
-	
-	public void logWrite(String s);
+    
+    public void logWrite(String s);
 
 }

@@ -23,7 +23,7 @@ At this point the http adapter has pretty much the same functionality as the sen
 I initially started to write this as an example of how you can use the Opaali API from your Java code. So the emphasis is on _code clarity_ and __not__ on _performance_. (_Although, already there was talk about using this in production, in-house..._) I chose to use a _templating system_ where the template looks like the _http request examples_ in the official Opaali API documentation.  
 
 Here is an example from the Messaging API documentation:
-![API example](/img/APIReference.png)
+![API example]({{ site.url }}/Opaali/img/APIReference.png)
 
 And this is the template from my code:
 ````

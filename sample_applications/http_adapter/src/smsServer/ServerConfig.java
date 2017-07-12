@@ -123,6 +123,7 @@ public class ServerConfig {
             Log.logError("failed to read configuration file \""+filename+"\"");
             return null;
         }
+        Log.logInfo("processing configuration file \""+filename+"\"");
         return lines.toArray(new String[0]);
     }
 
@@ -172,18 +173,18 @@ public class ServerConfig {
                     current.put("serviceType", serviceType);
                     serviceType = null;
                 }
-                
+                Log.logInfo("section:"+s);
             }
             else if (s.contains("=")) {
                 // store a config entry
-                Log.logInfo("config line:"+s);
+                Log.logInfo("config :"+s);
                 current.put(s.substring(0, s.indexOf('=')), s.substring(s.indexOf('=')+1));
             }
             else {
                 Log.logWarning("unrecognized config line:\""+s+"\"");
             }
         }
-        
+        Log.logInfo("end of configuration data reached");        
     }
     
 

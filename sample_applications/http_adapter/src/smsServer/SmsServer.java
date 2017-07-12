@@ -49,7 +49,7 @@ public class SmsServer {
                             if (ServerConfig.SERVICE_TYPE_SEND.equalsIgnoreCase(serviceType)) {
                                 server.createContext("/"+serviceName, new CgwHttpApiHandler(svc)); 
                                 server.setExecutor(null);
-                                Log.logDebug("CGW HTTP API started");
+                                Log.logInfo("CGW HTTP API started");
                                 server.start();
                             }
                         }

@@ -22,31 +22,34 @@ An example configuration file can be found in config directory.
 
 Here is an example of running the software (this was done on Windows):
 ```
-c:\Users\lasanenj\workspace\SmsServer\bin>java -cp .;..\..\JSON-java-master\bin smsServer.SmsServer ..\config.txt
-2017-06-16 13:55:47,444 INFO Default CharSet:windows-1252
-2017-06-16 13:55:47,524 INFO comment:# common config parameters are at the beginning
-2017-06-16 13:55:47,525 INFO comment:# server port
-2017-06-16 13:55:47,525 INFO config line:port=8877
-2017-06-16 13:55:47,526 INFO comment:# API host name
-2017-06-16 13:55:47,526 INFO comment:#API_HOST=api.sonera.fi
-2017-06-16 13:55:47,527 INFO comment:#API_HOST=api.opaali.telia.fi
-2017-06-16 13:55:47,527 INFO comment:
-2017-06-16 13:55:47,528 INFO comment:# log file name
-2017-06-16 13:55:47,528 INFO config line:log_file=OpaaliLog.txt
-2017-06-16 13:55:47,529 INFO comment:# log level: 0=NONE, 1=ERROR, 2=WARNING, 3=INFO, 4=DEBUG,
-2017-06-16 13:55:47,529 INFO config line:log_level=2
-2017-06-16 13:55:47,530 INFO comment:
-2017-06-16 13:55:47,530 INFO comment:# service sections [name:type]
-2017-06-16 13:55:47,531 INFO comment:# character set for CGW API side
-2017-06-16 13:55:47,531 INFO config line:cgwCharset=ISO-8859-1
-2017-06-16 13:55:47,532 INFO config line:applicationUserName=b535b0c5e5ae815cea82db6b3b25059a
-2017-06-16 13:55:47,532 INFO config line:applicationPassword=1%AMvv?w
-2017-06-16 13:55:47,533 INFO comment:
-2017-06-16 13:55:47,534 INFO comment:
-2017-06-16 13:55:47,534 INFO comment:
-2017-06-16 13:55:47,535 INFO comment:# end of config"
-2017-06-16 13:55:47,535 INFO comment:
-2017-06-16 13:55:47,963 DEBUG CGW HTTP API started
+C:\Users\lasanenj\workspace\SmsServer\bin>java -cp .;..\..\JSON-java-master\bin smsServer.SmsServer ..\config.txt
+2017-07-12 17:21:55,536 INFO Default CharSet:windows-1252
+2017-07-12 17:21:55,679 INFO processing configuration file "..\config.txt"
+2017-07-12 17:21:55,679 INFO comment:# common config parameters are at the beginning
+2017-07-12 17:21:55,680 INFO comment:# server port
+2017-07-12 17:21:55,680 INFO config :port=8877
+2017-07-12 17:21:55,680 INFO comment:# API host name
+2017-07-12 17:21:55,681 INFO comment:#API_HOST=api.sonera.fi
+2017-07-12 17:21:55,681 INFO config :API_HOST=api.opaali.telia.fi
+2017-07-12 17:21:55,682 INFO comment:
+2017-07-12 17:21:55,682 INFO comment:# log file name
+2017-07-12 17:21:55,682 INFO config :log_file=OpaaliLog.txt
+2017-07-12 17:21:55,682 INFO comment:# log level: 0=NONE, 1=ERROR, 2=WARNING, 3=INFO, 4=DEBUG,
+2017-07-12 17:21:55,683 INFO config :log_level=2
+2017-07-12 17:21:55,683 INFO comment:
+2017-07-12 17:21:55,683 INFO comment:# service sections [name:type]
+2017-07-12 17:21:55,683 INFO section:[send:cgw]
+2017-07-12 17:21:55,684 INFO comment:# character set for CGW API side
+2017-07-12 17:21:55,684 INFO config :cgwCharset=ISO-8859-1
+2017-07-12 17:21:55,685 INFO config :applicationUserName=b535b0c5e5ae815cea82db6b3b25059a
+2017-07-12 17:21:55,686 INFO config :applicationPassword=1%AMvv?w
+2017-07-12 17:21:55,687 INFO comment:
+2017-07-12 17:21:55,688 INFO comment:
+2017-07-12 17:21:55,688 INFO comment:
+2017-07-12 17:21:55,689 INFO comment:# end of config"
+2017-07-12 17:21:55,690 INFO comment:
+2017-07-12 17:21:55,690 INFO end of configuration data reached
+2017-07-12 17:21:56,069 INFO CGW HTTP API started
 ```
 
 ## Using

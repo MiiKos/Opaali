@@ -71,3 +71,8 @@ a.site-avatar img:focus {
   cursor: default;
 }
 
+.intro-header .post-heading,
+.intro-header .page-heading {
+  color: mediumpurple;
+  text-shadow: 1px 0 0 #000, 0 -1px 0 #000, 0 1px 0 #000, -1px 0 0 #000;
+}

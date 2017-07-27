@@ -10,6 +10,7 @@ email_support: opaali-tuki@teliacompany.com
 opaali_tuki: opaali-tuki@teliacompany.com
 opaali_portal: "http://developer.sonera.fi"
 opaali_forum: "http://developer.sonera.fi/g/forum"
+ref_path: "/Opaali"
 
 # Google Analytics
 # To enable google analytics, uncomment below line with a valid Google Tracking ID

@@ -22,7 +22,7 @@ $ echo $access_token
 You should always first check what the API Reference tells you to do:
 
 <!--![Outbound Message Request]({{ site.url }}/Opaali/img/ApiReferenceMTSMS.png)-->
-![Outbound Message Request]({{ site.url }}{{ site.ref_path }}/img/ApiReferenceMTSMS.png)
+![Outbound Message Request]({{ site.url }}{{ site.ref_path }}/img/APIReferenceMTSMS.png)
 *API Reference for Outbound Message Requests*
 
 For some reason it shows you how to send a _binary_ message ... when most likely you would want to start with sending a _text_ message. (_the binary message is unlikely to be displayed by your phone ... which will probably leave you confused about whether your API Call worked or not!_)

@@ -44,8 +44,7 @@ Seems easy enough, almost _too easy_, as it turns out...
 # What the API Reference says...
 This is an excerpt from the _OMA Authorization REST API Guide_:
 
-<!--![Request Access Token]({{ site.url }}/Opaali/img/ApiReferenceAuth.png)-->
-![Request Access Token]({{ site.url }}{{ site.ref_path }}/img/ApiReferenceAuth.png)
+![Request Access Token]({{ site.url }}{{ site.ref_path }}/img/APIReferenceAuth.png)
 
 OK -- using the _API Console_ did not teach us how to build the _Authorization header_ value, in fact -- the whole Authorization header was missing from the API Console response. 
 Also, we see that the request body should actually contain _grant_type=client_credentials_ (_maybe there is a bug in the API Console?_). Despite its limitations, the __API Console__ is an improvement that helps us in writing/testing our code.

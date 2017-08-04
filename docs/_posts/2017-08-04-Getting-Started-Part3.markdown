@@ -4,7 +4,7 @@ title:      "Getting started with Opaali API - Part 3"
 subtitle:   "Checking sent message delivery status"
 date:       2017-08-04 10:00:00
 author:     "JPLa"
-header-img: "img/BashScript2.png"
+header-img: "img/BashScript2.PNG"
 ---
 When you send an MT message using outboundMessageRequest, you get back a _resourceURL_ which you can use to check the delivery status of the sent message.
 ```bash

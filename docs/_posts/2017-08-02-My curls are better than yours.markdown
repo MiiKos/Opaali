@@ -37,4 +37,4 @@ _add command line parameter __--tlsv1.2__ to the curl command_:
 $ curl --tlsv1.2 -k -v -d grant_type=client_credentials https://api.opaali.telia.fi/autho4api/v1/token --header "Content-Type:application/x-www-form-urlencoded" --header "Authorization: Basic NJF4NzFjNjdmYjY1MzY3Y2Y5M2VkMDVkNzY3MDZhMDk6YWNIMStNX3I=" 
 ```
 ----
---tlsv1 _may also work. If you are wondering why the parameter_ -k _is sometimes present, but not always: I originally had to use it to disable certification verification because the self signed certificates couldn't be verified at that time. I guess it now works also without this._
+--tlsv1 _may also work (or __not__ -- Opaali FAQ v5.0 says that only TLSv1.1 and TLSv1.2 are supported). If you are wondering why the parameter_ -k _is sometimes present, but not always: I originally had to use it to disable certification verification because the self signed certificates couldn't be verified at that time. I guess it now works also without this._

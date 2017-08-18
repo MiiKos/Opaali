@@ -34,7 +34,7 @@ The _parameters_ are listed in the table below. The parameters in brackets are n
 |[-udh]|UDH in hex|The User Data Header information in hexadecimal format<p>To find out more about the UDH parameter, see the Nokia Smart Messaging documentation. Do not use this parameter if you do not know how it affects the mobile terminal’s functions.|*NOT IMPLEMENTED*|
 |[-c]|Class number|The message class<p>Defines where the received message is stored in the mobile terminal. The classes are as follows:<p>0 = Displays the message (flash) like a cell broadcast, but does not store the message<p>1 = Mobile terminal specific<p>2 = The message is stored on the SIM card.<p>3 = Terminal equipment specific<p>Do not add this parameter to the command if you do not know how the mobile terminal functions with this parameter.|*NOT IMPLEMENTED*|
 |[-f]|Filename|The name of the file that contains the message<p>The message is sent from the file specified in the parameter. If you omit the –m or –f parameters from the command, Send sends the text from the console as the message.| |
-|[-hex]|Message in hex|The message content in hexadesimal format.<p>For example:<p>-hex 98FAE4E412BC|*NOT IMPLEMENTED*|
+|[-hex]|Message in hex|The message content in hexadesimal format.<p>For example:<p>-hex 98FAE4E412BC| |
 
 Currently only a subset of the parameters are implemented (and some of the parameters are not relevant at all with Opaali API). As this is intended to help existing CGW uses to migrate to Opaali, all of the original parameters are documented here, with the comments column indicating which of the parameters are **not** available.
 
@@ -45,7 +45,7 @@ Brackets indicate optional parameters and are **not** to be entered on the comma
 #### when run without any parameters the usage syntax is shown ####
 ```bash
 $ ./send.sh
-Usage: ./send.sh -s sender -r recipient [-m message] [-f filename]
+Usage: ./send.sh -s sender -r recipient [-m message] [-f filename] [-hex message in hex]
 ```
 #### alternatives for specifying the message text ####
 (these are mutually exclusive -- you can only use one of them at a time)

@@ -34,7 +34,7 @@ function read_credentials {
 function usage {
     #param 1: commandName
 
-    echo "Usage: $1 -s sender -r recipient [-m message] [-f filename]" >/dev/stderr
+    echo "Usage: $1 -s sender -r recipient [-m message] [-f filename] [-hex message in hex]" >/dev/stderr
     exit 1
 }
 
@@ -95,6 +95,15 @@ function parse_arguments {
                 fi
                 shift
                 ;;
+                -hex)
+                shift
+                if [[ -n "$1" ]]; then
+                    MESSAGE=$(echo -n "$1" | xxd -r -p)
+                else
+                    error_exit "$0" "error decoding hex message" "$1"
+                fi
+                shift
+                ;;
                 -t|\
                 -bin|\
                 -text|\
@@ -104,8 +113,7 @@ function parse_arguments {
                 -ddt|\
                 -smart|\
                 -udh|\
-                -c|\
-                -hex)
+                -c)
                 not_implemented "$0" "$1"
                 ;;
                 *)
@@ -147,6 +155,12 @@ function parse_arguments {
             senderNameString=""
             senderAddress="${SENDER}"
         fi
+        
+        # escape (some) JSON reserved chars
+        MESSAGE=$(echo -n "$MESSAGE" | sed 's/\"/\\\"/g; s/\\/\\\\/g; s/\//\\\//g')
+
+        # convert scandinavian chars to unicode
+        MESSAGE=$(echo -n "$MESSAGE" | sed 's/å/\\u00e5/g; s/ä/\\u00e4/g; s/ö/\\u00f6/g; s/Å/\\u00c5/g; s/Ä/\\u00c4/g; s/Ö/\\u00d6/g')
 
     fi
 }

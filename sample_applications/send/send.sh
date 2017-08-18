@@ -193,7 +193,7 @@ function authenticate {
     basic_auth=$(echo -n "$1:$2" |base64)
 
     # call Opaali API and capture the interesting parts from the output"
-    local output=$(curl -k -s -d grant_type=client_credentials https://api.sonera.fi/autho4api/v1/token --header "Content-Type:application/x-www-form-urlencoded" --header "Authorization: Basic $basic_auth" | grep -E 'access_token|error')
+    local output=$(curl -k -s -d grant_type=client_credentials https://api.opaali.telia.fi/autho4api/v1/token --header "Content-Type:application/x-www-form-urlencoded" --header "Authorization: Basic $basic_auth" | grep -E 'access_token|error')
     
     # post processing: check for success or failure
     # we could test the return value, but choose to check the output only
@@ -228,7 +228,7 @@ function outboundMessageRequest {
     local sender=$(echo -n "$senderAddress" | sed -e s/\+/%2B/g -e s/\:/%3A/g)
 
     # call Opaali API and capture the interesting parts from the output"
-    local output=$(curl -k -s -d "{\"outboundMessageRequest\":{\"address\":[\"$1\"],\"senderAddress\":\"$senderAddress\",\"outboundSMSTextMessage\":{\"message\":\"$2\"}$senderNameString}}" --header 'Content-Type:application/json' --header "Authorization: Bearer $access_token" https://api.sonera.fi/production/messaging/v1/outbound/$sender/requests | grep -E 'resourceURL|error')
+    local output=$(curl -k -s -d "{\"outboundMessageRequest\":{\"address\":[\"$1\"],\"senderAddress\":\"$senderAddress\",\"outboundSMSTextMessage\":{\"message\":\"$2\"}$senderNameString}}" --header 'Content-Type:application/json' --header "Authorization: Bearer $access_token" https://api.opaali.telia.fi/production/messaging/v1/outbound/$sender/requests | grep -E 'resourceURL|error')
     
     
        # try grabbing deliveryURL from output

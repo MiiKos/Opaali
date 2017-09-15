@@ -132,12 +132,10 @@ function parse_arguments {
         fi
 
         # add "tel:" prefix to sender and/or recipient if they are not short numbers (i.e. contain '+')
-        if [[ "${SENDER:0:1}" == '+' ]]
-        then
+        if [[ "${SENDER:0:1}" == '+' ]]; then
             SENDER="tel:${SENDER}"
         fi
-        if [[ "${RECIPIENT:0:1}" == '+' ]]
-        then
+        if [[ "${RECIPIENT:0:1}" == '+' ]]; then
             RECIPIENT="tel:${RECIPIENT}"
         fi
 
@@ -147,8 +145,7 @@ function parse_arguments {
         fi
 
         # implement CGW style of specifying alphanumeric sender name
-        if [[ ${SENDER:0:1} == '$' ]]
-        then
+        if [[ ${SENDER:0:1} == '$' ]]; then
             senderNameString=",\"senderName\":\"${SENDER:1}\""
             senderAddress="tel:+358000000000"
         else

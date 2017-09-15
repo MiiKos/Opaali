@@ -34,7 +34,7 @@ function read_credentials {
 function usage {
     #param 1: commandName
 
-    echo "Usage: $1 -s sender -r recipient [-m message] [-f filename] [-hex message in hex]" >/dev/stderr
+    echo "Usage: $1 -s sender -r recipient [-bin|-text] [-m message] [-smart smart port] [-udh udh in hex] [-f filename] [-hex message in hex]" >/dev/stderr
     exit 1
 }
 
@@ -64,6 +64,9 @@ function parse_arguments {
         usage "$0"
     else
         # parse arguments
+        
+        # message sending mode: TEXT|BIN|FLASH (TEXT is default)
+        MODE="TEXT"
         while [ "$#" -gt 0 ]
         do
             case "$1" in
@@ -98,21 +101,59 @@ function parse_arguments {
                 -hex)
                 shift
                 if [[ -n "$1" ]]; then
-                    MESSAGE=$(echo -n "$1" | xxd -r -p)
+                    # HEX will contain MESSAGE as hex encoded
+                    HEX="$1"
                 else
-                    error_exit "$0" "error decoding hex message" "$1"
+                    error_exit "$0" "missing hex message" "$1"
                 fi
                 shift
                 ;;
+                -udh)
+                shift
+                if [[ -n "$1" ]]; then
+                    # User Data Header
+                    UDH="$1"
+                    # UDH implies MODE BIN
+                    MODE="BIN"
+                else
+                    error_exit "$0" "missing UDH" "$1"
+                fi
+                shift
+                ;;
+                -smart)
+                shift
+                declare -i SMART
+                if [[ -n "$1" ]]; then
+                    # smart messaging port number (in decimal)
+                    SMART="$1"
+                    # SMART implies MODE BIN
+                    MODE="BIN"
+                    # SMART is implemented as UDH (overwrites possibly existing UDH)
+                    if [[  $1 -lt 256 ]]; then
+                        # 8-bit port number
+                        UDH=$(printf '040402%02x%02x' $SMART $SMART)
+                    else
+                        # 16-bit port number
+                        UDH=$(printf '060504%04x%04x' $SMART $SMART)
+                    fi
+                else
+                    error_exit "$0" "missing port in -smart" "$1"
+                fi
+                shift
+                ;;
+                -bin)
+                MODE="BIN"
+                shift
+                ;;
+                -text)
+                MODE="TEXT"
+                shift
+                ;;
                 -t|\
-                -bin|\
-                -text|\
                 -h|\
                 -nrq|\
                 -vp|\
                 -ddt|\
-                -smart|\
-                -udh|\
                 -c)
                 not_implemented "$0" "$1"
                 ;;
@@ -122,7 +163,7 @@ function parse_arguments {
             esac
         done
 
-        #post processing arguments
+        # post processing arguments
         
         if [[ -z "${SENDER}" ]]; then
             error_exit "$0" "sender missing"
@@ -140,7 +181,7 @@ function parse_arguments {
         fi
 
         # if message is empty read it from stdin
-        if [ -z "${MESSAGE}" ]; then
+        if [[ -z "${MESSAGE}" && -z "${HEX}" ]]; then
             readMsg MESSAGE
         fi
 
@@ -159,6 +200,8 @@ function parse_arguments {
         # convert scandinavian chars to unicode
         MESSAGE=$(echo -n "$MESSAGE" | sed 's/å/\\u00e5/g; s/ä/\\u00e4/g; s/ö/\\u00f6/g; s/Å/\\u00c5/g; s/Ä/\\u00c4/g; s/Ö/\\u00d6/g')
 
+        # build final MESSAGE (including UDH if needed) 
+        buildMessage "${MESSAGE}" "${HEX}" "${MODE}" "${UDH}"
     fi
 }
 
@@ -195,7 +238,7 @@ function authenticate {
     # post processing: check for success or failure
     # we could test the return value, but choose to check the output only
     
-    # try grabbibg access_token from the output
+    # try grabbing access_token from the output
     access_token=$(echo "$output" | grep access_token | cut -d\: -f2 | tr -d "\", ")
     if [[ -z "$access_token" ]]; then
         # access_token is empty so something went wrong
@@ -212,10 +255,41 @@ function authenticate {
     return 0
 }
 
+# build a message and store it in global variable MESSAGE
+function buildMessage {
+    #param 1: message in TEXT format
+    #param 2: message in HEX format
+    #param 3: MODE
+    #param 4: UDH or (null)
+    
+    if [[ -n "$4" || "$3" == BIN ]]; then
+        # UDH implies binary message
+        UDH="$4"
+        if [[ -z "$2" ]]; then
+            # hex encode text
+            HEX=$(echo -n "$1" | xxd -p | tr -d "\n")
+        else
+            HEX="$2"
+        fi
+        MESSAGE=$(echo -n "$UDH$HEX" | xxd -r -p | base64 | tr -d "\n")
+    else
+        # text message
+        if [[ -z "$1" && -n "$2" ]]; then
+            # decode hex message into text
+            MESSAGE=$(echo -n "$2" | xxd -r -p)
+        else
+            MESSAGE="$1"
+        fi
+    fi
+    return 0
+}
+
+
 # make an outboundMessageRequest
 function outboundMessageRequest {
     #param 1: recipientAddress
     #param 2: message
+    #param 3: mode - BIN or TEXT
     #global: senderAddress - sender address string
     #global: senderNameString - sender name string with comma or empty string
     #global: access_token - access token string
@@ -224,11 +298,19 @@ function outboundMessageRequest {
     # urlencode + and :
     local sender=$(echo -n "$senderAddress" | sed -e s/\+/%2B/g -e s/\:/%3A/g)
 
+    local outboundSMStype=""
+    # choose a text or binary message
+    if [[ $3 == "BIN" ]]; then
+        outboundSMStype="outboundSMSBinaryMessage"
+    else
+        outboundSMStype="outboundSMSTextMessage"
+    fi
+    
+    
     # call Opaali API and capture the interesting parts from the output"
-    local output=$(curl -k -s -d "{\"outboundMessageRequest\":{\"address\":[\"$1\"],\"senderAddress\":\"$senderAddress\",\"outboundSMSTextMessage\":{\"message\":\"$2\"}$senderNameString}}" --header 'Content-Type:application/json' --header "Authorization: Bearer $access_token" https://api.opaali.telia.fi/production/messaging/v1/outbound/$sender/requests | grep -E 'resourceURL|error')
-    
-    
-       # try grabbing deliveryURL from output
+    local output=$(curl -k -s -d "{\"outboundMessageRequest\":{\"address\":[\"$1\"],\"senderAddress\":\"$senderAddress\",\"$outboundSMStype\":{\"message\":\"$2\"}$senderNameString}}" --header 'Content-Type:application/json' --header "Authorization: Bearer $access_token" https://api.opaali.telia.fi/production/messaging/v1/outbound/$sender/requests | grep -E 'resourceURL|error')
+ 
+    # try grabbing deliveryURL from output
     deli=$(echo "$output" | grep resourceURL | cut -d\: -f2- | tr -d "\" ")
 
     # post processing: check for success or failure
@@ -278,7 +360,7 @@ function main {
     fi
     
     emsg=""
-    outboundMessageRequest "${RECIPIENT}" "${MESSAGE}"
+    outboundMessageRequest "${RECIPIENT}" "${MESSAGE}" "${MODE}"
 
     if [[ "$?" -ne 0 ]]; then
         error_exit "$0" "$emsg"

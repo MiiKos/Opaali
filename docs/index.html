@@ -2,6 +2,13 @@
 layout: page
 description: "A Clean Blog Theme by Start Bootstrap"
 ---
+{% unless paginator.previous_page %}
+<div class="banner">
+    
+    <em>If this is your first time here, you may want to start reading from </em><b><a href="{{ site.baseurl }}/indexall">the beginning</a></b><em> instead.</em>
+    
+</div>
+{% endunless %}
 
 {% for post in paginator.posts %}
 <div class="post-preview">

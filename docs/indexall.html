@@ -1,0 +1,20 @@
+---
+layout: page
+title: "All Posts"
+description: "List of all posts in chronological order."
+---
+
+<h2>All Posts</h2>
+You can read all posts in chronological order here:
+<hr/>
+<ul>
+{% assign sorted = (site.posts | sort: 'date') } %}
+{% for item in sorted %}
+<li class="title-small">
+    <span class="date-small"><b>{{ item.date | date: "%Y-%m-%d" }}: </b></span>
+    <a href="{{ item.url | prepend: site.baseurl }}">
+    {{ item.title }}{% if item.subtitle %} <i class="post-subtitle">- {{ item.subtitle }}</i>{% endif %}
+    </a>
+</li>
+{% endfor %}
+</ul>

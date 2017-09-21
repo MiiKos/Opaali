@@ -177,8 +177,12 @@ public class ServerConfig {
             }
             else if (s.contains("=")) {
                 // store a config entry
-                Log.logInfo("config :"+s);
                 current.put(s.substring(0, s.indexOf('=')), s.substring(s.indexOf('=')+1));
+                // avoid logging passwords unless in DEBUG mode
+                if (s.substring(0, s.indexOf('=')).toLowerCase().contains("password") /*&& Log.le*/)
+                	Log.logInfo("config :"+s.substring(0, s.indexOf('=')+1)+s.substring(s.indexOf('=')+1).replaceAll(".", "*"));
+                else
+                    Log.logInfo("config :"+s);
             }
             else {
                 Log.logWarning("unrecognized config line:\""+s+"\"");

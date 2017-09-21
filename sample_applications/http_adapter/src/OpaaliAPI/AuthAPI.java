@@ -37,8 +37,30 @@ public class AuthAPI {
             "grant_type=client_credentials" 
         };
 
-        AccessToken access_token = new AccessToken(authTemplate, username, password);
-        access_token.authenticate();
+        AccessToken access_token = null;
+        int retryCount = 1;
+        while (retryCount-- >= 0) {
+            access_token = new AccessToken(authTemplate, username, password);
+            String tokenString = access_token.authenticate();
+            // check authenticate() return value
+            if (tokenString == null) {
+                // unrecoverable error
+                access_token = null;
+                retryCount = -1;
+            } else if (tokenString.length() == 0) {
+                // a recoverable error, such as TPS exceeded - wait a second and retry
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    // just ignore this
+                    ;
+                 }
+            }
+            else {
+                // success
+                retryCount = -1; 
+            }
+        } 
         return access_token;
     }
 

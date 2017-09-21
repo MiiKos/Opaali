@@ -22,7 +22,14 @@ public class AccessToken {
     /*
      * A class representing the access_token that is needed for an API session
      * 
+     * three states (which the caller can check based on access_token value):
+     *  access_token == null       => unrecoverable error
+     *  access_token.length() == 0 => recoverable error
+     *  access_token.length() > 0  => valid token (may or may not have expired)
      * 
+     * in case of a recoverable error the caller may retry after a suitable wait period 
+     * (i.e. TPI limit exceeded), in case of an unrecoverable error manual intervention
+     * (configuration update and restart) is needed so you should not retry 
      */
 
     
@@ -48,6 +55,8 @@ public class AccessToken {
     private long expires_in = 0;      // original lifetime
     private LocalDateTime expires = LocalDateTime.now();
     private final int MARGIN = 30;    // seconds 
+    private int http_rc = -1;
+    private String policyError = null;
     
     /*
      * Create an AccessToken with default template and specified credentials
@@ -56,6 +65,7 @@ public class AccessToken {
         this();
         String temp = username+":"+password;
         authString = Base64.getEncoder().encodeToString(temp.getBytes());
+        access_token= "";
     }
 
     
@@ -67,6 +77,7 @@ public class AccessToken {
         tmpl = new Template(template);
         String temp = username+":"+password;
         authString = Base64.getEncoder().encodeToString(temp.getBytes());
+        access_token = "";
     }
 
 
@@ -89,19 +100,32 @@ public class AccessToken {
     
     
     /*
+     * returns true if the access_token string is not null
+     * (note that an empty string is considered valid, because you can eventually 
+     * recover from that situation by  repeatedly calling authenticate())
+     */
+    public boolean isValid() {
+        return (access_token != null);
+    }
+    
+    
+    /*
      * makes an actual authentication request
      * and returns the access_token string
      */
     public String authenticate() {
         if (authString != null) {
             // set authentication string to BASIC_AUTH variable
-            HashMap <String, String> vars = Config.getConfig(); //new HashMap <String, String>(); //Config.getConfig();
+            HashMap <String, String> vars = Config.getConfig();
             vars.put("BASIC_AUTH", authString);
             Log.logDebug("vars:"+vars);
             // expand the request template with the variables and make a HTTP request
             HttpResponse resp = HttpRequest.makeRequest(tmpl.expand(vars).toStrings());
             // process the HTTP response and extract access_token value
-            processAuthResponse(resp);
+            if (!processAuthResponse(resp)) {
+                // failure - let the caller decide how to proceed (retry or fail)
+                Log.logError("authentication failure (rc="+http_rc+(policyError != null ? ", "+policyError+")" : ")"));
+            }
         }
         return access_token;
     }
@@ -134,6 +158,7 @@ public class AccessToken {
     private AccessToken() {
         template = authTemplate;
         tmpl = new Template(template);
+        access_token = "";
     }
     
 
@@ -142,23 +167,49 @@ public class AccessToken {
      * parse the HTTP response and extract access_token value and lifetime
      */
     private boolean processAuthResponse(HttpResponse resp) {
-        // does not check HTTP status but assumes that the JSON body is
-        // only available after a successful request
-        //TODO: add status check 
         /*
+         * possible results:
          * 200 - success
-         * 400 - Bad Request
-         * 401 - Authentication failure
-         * 403 - Policy Exception: log the error and wait to prevent further exceeding TPS 
+         *  400 - Bad Request (terminate)
+         *  401 - Authentication failure (terminate)
+         *  403 - Policy Exception: 
+         *        - empty body: (terminate)
+         *        - policy_error 3003: log the error and wait to prevent further exceeding TPS
+         *        - policy_error 3004: (terminate) 
          */
+        // reset current values
+        access_token = null;
+        expires = LocalDateTime.now();
+        http_rc = (resp != null ? resp.rc : 500);
+        policyError = null;
         if (resp != null && resp.responseBody != null) {
+            http_rc = resp.rc;
                JSONObject json = new JSONObject(resp.responseBody);  // whole JSON
                Log.logDebug("JSON:"+json);
+            if (resp.rc == 200) {
                access_token = json.getString("access_token");
                expires_in = json.getLong("expires_in");
             expires = LocalDateTime.now().plusSeconds(expires_in - MARGIN);
             return (access_token != null);
         }
+            else if (resp.rc == 403 && resp.responseBody != null) 
+            {
+                if (json.has("requestError")) {
+                       json = JSONHandler.descendInto(json, "requestError");
+                    if (json.has("policyException")) {
+                           json = JSONHandler.descendInto(json, "policyException");
+                           policyError = JSONHandler.getStringValue(json, "messageId");
+                           if (policyError != null && "POL3003".equals(policyError)) {
+                               // max transactions per interval exceeded - this is a recoverable error
+                               access_token = "";
+                           }
+                           // any other result means unrecoverable error
+                    }
+                }
+            }
+            // fail, fall through
+        }
+        // fail
         return false;
     }
 

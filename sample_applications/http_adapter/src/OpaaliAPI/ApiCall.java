@@ -22,32 +22,51 @@ public class ApiCall {
     public static String makeRequest(AccessToken access_token, Template tmpl, HashMap <String, String> vars) {
     
         /*
-         * 200 OK
-         * 400 BAD REQUEST
-         * 401 AUTHENTICATION FAILURE
+         * possible http request results:
+         *  200 - success
+         *  400 - Bad Request (terminate)
+         *  401 - Authentication failure (terminate)
+         *  403 - Policy Exception: 
+         *        - empty body: (terminate)
+         *        - policy_error 3003: log the error and wait to prevent further exceeding TPS
+         *        - policy_error 3004: (terminate) 
          */
+
         HttpResponse resp = null;
+        //HttpResponse lastResp = null;
         int retries = 0;
         do {
+            //lastResp = resp;
             resp = HttpRequest.makeRequest(tmpl.expand(vars).toStrings());
             switch (resp.rc) {
                 case 200: // OK
                     break;
                 case 400: // BAD REQUEST
                     break;
-                case 401: // UNAUTHERIZED
+                case 401: // UNAUTHORIZED
                     // re-authenticate once in case access_token has expired
-                    retries = 1;
-                    vars.put("ACCESS_TOKEN", access_token.authenticate());
+                    String tokenString = access_token.authenticate();
+                    /*
+                     * tokenString is one of these types:
+                     * - null -> unrecoverable error -> terminate somehow
+                     * - ""   -> recoverable error, probably TPS exceeded
+                     * -"..." -> valid token, go on and retry
+                     * 
+                     * authenticate() should catch if 401 is recurring 
+                     * 
+                     */
+                    vars.put("ACCESS_TOKEN", tokenString);
+                    break;
+                case 403: // FORBIDDEN
+                    // this is handled in doRetry()
                     break;
                 default:
                     break;
             }
-        } while (retries-- > 0);
+        } while (doRetry(retries++, resp/*, lastResp*/));
         
         return processResponse(resp);
     }
-
 
     
     /*
@@ -116,7 +135,7 @@ public class ApiCall {
 
     
 
-    public class ReceiptRequest {
+    public static class ReceiptRequest {
         String notifyURL = null;
         String notificationFormat = "JSON";
         String callbackData = null;
@@ -199,6 +218,93 @@ public class ApiCall {
         
     }
 
+    
+    /*
+     * called when authentication fails due to a temporary condition
+     */
+    public AccessToken retryAuth(AccessToken access_token) {
+        int retries = 1;
+        while (retries-- >= 0) {
+            String tokenString = access_token.authenticate();
+            // check authenticate() return value
+            if (tokenString == null) {
+                // unrecoverable error
+                return null;
+            } else if (tokenString.length() == 0) {
+                // a recoverable error, such as TPS exceeded - wait a second and retry
+                slowDown(1);
+            }
+            else {
+                // success
+                break;
+            }
+        }
+        return access_token;
+    }
+    
+    
+    private static boolean doRetry(int counter, HttpResponse resp /*, HttpResponse lastResp*/) {
+        final int maxRetries = 4;
+        switch (resp.rc) {
+            case 200: return false;  // success - no need to retry
+                 //break;
+            case 400: return false;  // terminal failure - certainly no need to retry!
+                 //break;
+            case 401:
+                // possible cause: token expired
+                // repeated cases are caught elsewhere
+                break;
+            case 403:
+                // possible cause: TPS exceeded
+                // check if POL3003 error, then retry if counter < 10
+            
+                if (resp.responseBody != null) 
+                {
+                    String policyError = JSONHandler.processRequestError(resp.responseBody);
+                       if (policyError != null && "POL3003".equals(policyError)) {
+                           // max transactions per interval exceeded - this is a recoverable error
+                           slowDown(counter+1);
+                       }
+                       else {
+                           // unrecoverable error
+                           return false;
+                       }
+                }
+                else {
+                    // unrecoverable error
+                    return false;
+                }
+
+            
+                break;
+            default:
+                // unexpected -> terminate
+                return false;
+                //break;
+        }
+        if (counter < maxRetries) {
+            return true;
+        }
+        return false;
+    }
+    
+
+    
+
+    /*
+     * called to recover from temporary exceeding TPS limit
+     */
+    public static void slowDown(int secs) {
+        // in case of a recoverable error, such as TPS exceeded - wait a second and retry
+        try {
+            Thread.sleep(secs*1000);
+        } catch (InterruptedException e) {
+            // just ignore this
+            ;
+         }
+    }
+
+    
     // = end of public part ===================================================
 
     /*

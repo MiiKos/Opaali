@@ -57,11 +57,11 @@ public class CgwHttpApiHandler implements HttpHandler {
 
     String serviceName = null;
     ServiceConfig sc = null;
-    MessagingAPI api = null;
     AccessToken access_token = null;
     String username = null;
     String password = null;
     String cgwCharset = null;
+    boolean failureMode = false;         // true after an unrecoverable error
     
     @Override
     public void handle(HttpExchange x) throws IOException {
@@ -127,7 +127,7 @@ public class CgwHttpApiHandler implements HttpHandler {
         /*
          * request return code, response headers and body
          */
-        int rc = 0;
+        int rc = 401;    // default error response
         HashMap<String, String> headers = new HashMap<String, String>();
         String responseBody = "";
 
@@ -169,15 +169,40 @@ public class CgwHttpApiHandler implements HttpHandler {
             }     
             
             // make sure we have a valid session
-            if (access_token == null) {
+            if (!failureMode && access_token == null) {
                 access_token = AuthAPI.requestAccessToken(username, password);
-                if (access_token != null) {
-                    api =  new MessagingAPI(serviceName, access_token);
+                //TODO: error handling
+                /*
+                 * if (access_token == null) shut down this handler (unrecoverable error)
+                 * if (access_token != null && access_token.length() == 0) retry (one or more?) after 1-2 seconds
+                 * if (access_token != null && access_token.length() > 0) go make the actual API call
+                 * 
+                 * potential problem: if retry takes a long time the caller may time out even when the eventual API call succeeds
+                 *  
+                 */
+                if (access_token == null) {
+                    // unrecoverable error
+                    //TODO: yes this is possible, due to e.g. an unrecoverable config error
+                    //log this error and return 403 or 503 or 509 immediately
+                    //TODO: should we try again or should we keep failing until this
+                    //service is restarted?
+                    Log.logError("problem with access token...");
+                    failureMode = true;
                 } 
                 else {
-                    // error - is this possible?
-                    Log.logError("problem with access token...");
+                    // success                    
+                    //api = new MessagingAPI(serviceName, access_token);   //TODO: not really needed?
                 }
+                
+            }
+
+            if (failureMode) {
+                // after encountering an unrecoverable error keep returning error to caller
+                Log.logError("returning 503 Service Unavailable to request");
+                if (responseBody.length() == 0) {
+                    responseBody = "<b>Service unavailable</b>";
+                }
+                return new HttpResponse(503, headers, responseBody);
             }
             
             // add "tel:" prefix to international numbers (and URLdecode too...)
@@ -221,6 +246,7 @@ public class CgwHttpApiHandler implements HttpHandler {
                         if (dI.deliveryStatus == dI.DeliveredToNetwork ||
                             dI.deliveryStatus == dI.DeliveredToTerminal) {
                             str.append("Success: ").append(dI.address).append(": OK<br>");
+                            rc = 200;
                         }
                         else {
                             str.append("Failure: ").append(dI.address).append(": ").append("Message sending failed.").append(dI.description != null ? "("+dI.description+")" : "").append("<br>");

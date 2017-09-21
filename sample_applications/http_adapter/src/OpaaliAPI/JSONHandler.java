@@ -105,13 +105,41 @@ public class JSONHandler {
         return null;
     }
 
-    // = end of public part ===================================================
 
+    /*
+     * processes the body returned in HttpResponse from an API Call 
+     * and parses the JSON Data. 
+     * if the JSON Data contains a requestError then it parses and
+     * returns the policyException messageId (or null).
+     */ 
+    public static String processRequestError(String resp) {
+        if (resp != null) {
+            try {
+                   JSONObject json = new JSONObject(resp);  // Whole json
+                   Log.logDebug("JSON:"+json); 
+                   // try to detect which known JSON object this is
+                if (json.has("requestError")) {
+                       json = JSONHandler.descendInto(json, "requestError");
+                    if (json.has("policyException")) {
+                           json = JSONHandler.descendInto(json, "policyException");
+                           return JSONHandler.getStringValue(json, "messageId");
+                    }
+                }
+            } catch (JSONException e) {
+                // not a valid JSON response
+                return null;
+            }
+        }
+        return null;
+    }
+
+    
+    /* utilities for navigating json object */
 
     /*
      * returns the string value of an object or null if it does not exist
      */
-    private static String getStringValue(JSONObject json, String elementName) {
+    public static String getStringValue(JSONObject json, String elementName) {
         String value = null;
         if (json.has(elementName)) {
             Log.logDebug(elementName+" exists");
@@ -126,12 +154,14 @@ public class JSONHandler {
      * (it is assumed that the caller just will not find any following
      * objects and will fail gracefully...)
      */
-    private static JSONObject descendInto(JSONObject json, String elementName) {
+    public static JSONObject descendInto(JSONObject json, String elementName) {
         if (json.has(elementName)) {
             Log.logDebug(elementName+" exists");
             json = json.getJSONObject(elementName);
         }
         return json;
     }
+
+    // = end of public part ===================================================
 
 }

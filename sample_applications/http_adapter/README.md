@@ -18,6 +18,8 @@ You will need an external JSON implementation which can be found here: https://g
 You will need a configuration file which should be specified as command line parameter when starting the software.
 An example configuration file can be found in config directory.
 
+Depending on the platform you run this software on, you may want to set the _cgwCharset_ setting to _ISO-8859-1_ or _UTF-8_ to get correct special characters.
+
 ## Running
 
 Here is an example of running the software (this was done on Windows):
@@ -58,3 +60,8 @@ You have probably used Content Gateway before so you should know how to send a m
 Here is an example, anyway:
 ![sending an sms](screenshots/sending_an_sms.png)
 
+Currently the only supported parameters are _to_, _from_ and _msg_.
+
+```
+http://<host>:<port>/send?to=<recipient>&from=<sender>&msg=<message content>
+```

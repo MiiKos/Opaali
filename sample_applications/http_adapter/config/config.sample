@@ -11,11 +11,16 @@ port=8081
 log_file=OpaaliLog.txt   
 # log level: 0=NONE, 1=ERROR, 2=WARNING, 3=INFO, 4=DEBUG,
 log_level=2                
+# always log to stderr too: 0=no, 1=yes
+log_stderr=1
+# append to existing log file: 0=no, 1=yes
+log_append=1       
 
 # service sections [name:type]            
 [send:cgw]
 # character set for CGW API side
 cgwCharset=ISO-8859-1
+#cgwCharset=UTF-8
 # replace these with your own credentials (these won't work)      
 applicationUserName=b535b0c5e5ae815cea82db6b32b5095a
 applicationPassword=1%AMCC?u

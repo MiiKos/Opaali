@@ -31,7 +31,7 @@ public class Template {
      */
     public Template expand(HashMap <String,String> vars) {
         String[] tmpl = tmplExpand(template, vars);
-        System.err.println(Arrays.toString(tmpl));
+        //System.err.println(Arrays.toString(tmpl));
         return new Template(tmpl);
     }
     

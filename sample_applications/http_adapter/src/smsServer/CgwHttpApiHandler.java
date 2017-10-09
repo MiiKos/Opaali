@@ -246,7 +246,7 @@ public class CgwHttpApiHandler implements HttpHandler {
                         if (dI.deliveryStatus == dI.DeliveredToNetwork ||
                             dI.deliveryStatus == dI.DeliveredToTerminal) {
                             str.append("Success: ").append(dI.address).append(": OK<br>");
-                            rc = 200;
+                            rc = CGW_RC_OK;
                         }
                         else {
                             str.append("Failure: ").append(dI.address).append(": ").append("Message sending failed.").append(dI.description != null ? "("+dI.description+")" : "").append("<br>");

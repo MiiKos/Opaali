@@ -56,7 +56,7 @@ public class HttpRequest {
         String requestMethod = s[0];
         String requestURL = s[1];
         String protocolVersion = s[2];
-        String charSet = "ISO-8859-15";
+        String charSet = "UTF-8"; //"ISO-8859-15";
         
         try {
             HttpURLConnection conn = (HttpURLConnection) new URL(requestURL).openConnection();

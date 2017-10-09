@@ -36,6 +36,12 @@ public class ServerConfig {
     public static final String CONFIG_PASSWORD = "applicationPassword";
     public static final String CONFIG_CGWCHARSET = "cgwCharset";
     public static final String CONFIG_OPAALICHARSET = "opaaliCharset";
+    public static final String CONFIG_DLR_URL = "DLR_URL";
+    public static final String CONFIG_LOG_FILE = "log_file";
+    public static final String CONFIG_LOG_LEVEL = "log_level";
+    public static final String CONFIG_LOG_STDERR = "log_stderr";
+    public static final String CONFIG_LOG_APPEND = "log_append";
+    
     
     
     /*
@@ -79,7 +85,7 @@ public class ServerConfig {
     
 
     /*
-     * get service specific config or default config is there is none
+     * get service specific config or default config if there is none
      */
     public ServiceConfig getServiceConfig(String serviceName) {
         return (ServiceConfig) (serviceName == null ? defaultConfig : serviceConfig.get(serviceName));
@@ -180,7 +186,7 @@ public class ServerConfig {
                 current.put(s.substring(0, s.indexOf('=')), s.substring(s.indexOf('=')+1));
                 // avoid logging passwords unless in DEBUG mode
                 if (s.substring(0, s.indexOf('=')).toLowerCase().contains("password") /*&& Log.le*/)
-                	Log.logInfo("config :"+s.substring(0, s.indexOf('=')+1)+s.substring(s.indexOf('=')+1).replaceAll(".", "*"));
+                    Log.logInfo("config :"+s.substring(0, s.indexOf('=')+1)+s.substring(s.indexOf('=')+1).replaceAll(".", "*"));
                 else
                     Log.logInfo("config :"+s);
             }

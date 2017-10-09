@@ -38,17 +38,17 @@ public class Log {
             String tag;
             switch (level) {
             case ERROR:
-                tag = "ERROR";
+                tag = "ERROR  ";
                 break;
             case WARNING:
                 tag = "WARNING";
                 break;
             case INFO:
-                tag = "INFO";
+                tag = "INFO   ";
                 break;
             case DEBUG:
             default:
-                tag = "DEBUG";
+                tag = "DEBUG  ";
                 break;
             }
             logger.logWrite(timestamp()+tag+" "+s);

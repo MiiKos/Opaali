@@ -13,7 +13,7 @@ Now and then customers attempt _performance testing in sandbox mode_ and wonder 
 
 ----
 
-Sandbox is a __simulator__ for OpaaliAPI, it is especially useful for _testing error cases_ which are hard to generate in _Production Mode_. Such as _"Subscriber barred"_ or _"Prepaid Subscriber with insufficient balance"_ -- see the document __API_Telia_OMA_Sandbox_REST.pdf__ in the [Resources section]({{ opaali_portal }}/resources) of the Opaali Portal.
+Sandbox is a __simulator__ for OpaaliAPI, it is especially useful for _testing error cases_ which are hard to generate in _Production Mode_. Such as _"Subscriber barred"_ or _"Prepaid Subscriber with insufficient balance"_ -- see the document __API_Telia_OMA_Sandbox_REST.pdf__ in the [Resources section]({{site.opaali_portal}}/resources) of the Opaali Portal.
 
 As a simulator its performance is not comparable to production so _running any kind of performance tests in Sandbox is useless_. And because it is a simulator, there is _no connection to the actual telephone network_.
 

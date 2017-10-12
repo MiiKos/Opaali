@@ -173,7 +173,7 @@ public class HttpRequest {
     private static String dumpbytes(byte[] b) {
         String s = "";
         for (byte bb : b) {
-            s += Byte.toUnsignedInt(bb) + ", ";
+            s += Byte.toUnsignedInt(bb) + "("+(char) bb +"), ";
         }
         return s;
     }

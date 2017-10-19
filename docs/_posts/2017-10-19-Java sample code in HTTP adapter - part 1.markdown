@@ -20,7 +20,9 @@ To make it easy to write calls to the _Opaali REST API_ based on the examples in
 
 So the templates are based on the examples in the API documentation by replacing values that change with template variables.
 As an example, outboundMessageRequest is documented like this:
-![API example](/img/APIReference.png)
+
+![Outbound Message Request]({{ site.url }}{{ site.ref_path }}/img/APIReferenceMTSMS.png)
+
 
 The code in _OpaaliAPI Java package_ follows this pattern:
 * all variables are passed as method arguments

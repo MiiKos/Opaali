@@ -198,11 +198,11 @@ public class CgwHttpApiHandler implements HttpHandler {
 
             if (failureMode) {
                 // after encountering an unrecoverable error keep returning error to caller
-                Log.logError("returning 503 Service Unavailable to request");
+                Log.logError("unrecoverable error, returning 401 Unauthorized to request");
                 if (responseBody.length() == 0) {
-                    responseBody = "<b>Service unavailable</b>";
+                    responseBody = "<b>Access is denied due to probably invalid credentials in http_adapter configuration</b>";
                 }
-                return new HttpResponse(503, headers, responseBody);
+                return new HttpResponse(401, headers, responseBody);
             }
             
             // add "tel:" prefix to international numbers (and URLdecode too...)

@@ -80,6 +80,7 @@ public class SmsServer {
          * for configured service types
          */
 
+    	boolean startServer = false;
         
         // read server configuration
         ServerConfig sc = new ServerConfig(configFile);
@@ -126,11 +127,14 @@ public class SmsServer {
                         if (serviceType != null) {
                             if (ServerConfig.SERVICE_TYPE_SEND.equalsIgnoreCase(serviceType)) {
                                 server.createContext("/"+serviceName, new CgwHttpApiHandler(svc)); 
-                                server.setExecutor(null);
+                                startServer = true;
                                 Log.logInfo("CGW HTTP API started");
-                                server.start();
                             }
                         }
+                    }
+                    if (startServer) {
+                        server.setExecutor(null);
+                        server.start();
                     }
                     
                 } catch (IOException e) {

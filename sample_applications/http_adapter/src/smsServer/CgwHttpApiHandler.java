@@ -65,7 +65,10 @@ public class CgwHttpApiHandler implements HttpHandler {
     
     @Override
     public void handle(HttpExchange x) throws IOException {
-         
+
+        // this triggers log rotation after midnight, if enabled
+        SmsServer.checkLogRotation();
+
         Log.logDebug("http request: " + x.getRequestURI());
         
         String queryString = x.getRequestURI().getRawQuery();

@@ -18,6 +18,10 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.InetSocketAddress;
 import java.nio.charset.Charset;
+import java.time.LocalDate;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import com.sun.net.httpserver.HttpServer;
 
 import OpaaliAPI.Log;
@@ -35,7 +39,7 @@ public class SmsServer {
      */
     private static class FileLogger implements LogWriter {
 
-        PrintWriter fw = null;
+        volatile PrintWriter fw = null;
         boolean logStderr = true;    // always log to stderr, too
         boolean logAppend = true;    // append to existing log file
         
@@ -71,6 +75,68 @@ public class SmsServer {
         
     }
     
+    /*
+     * a LogWriter that writes log to a file that has current date added to the filename (or to stderr if opening file fails)
+     */
+    private static class RotatingFileLogger extends FileLogger {
+
+        private final String savedFilename;
+        private LocalDate current = LocalDate.now();
+
+        RotatingFileLogger(String filename, boolean logStderr, boolean logAppend) {
+            super(getDatedFilename(filename), logStderr, logAppend);
+            savedFilename = filename;
+            current = LocalDate.now();
+        }
+
+        /*
+         * check if date in log file name should be changed
+         */
+        synchronized public void checkRotation() {
+            if (LocalDate.now().isAfter(current)) {
+                // day has changed, change log file name
+                String newFilename = getDatedFilename(savedFilename);
+                current = LocalDate.now();
+                this.close();
+                try {
+                    fw = new PrintWriter(new BufferedWriter(new FileWriter(newFilename, logAppend)));
+                } catch (IOException e) {
+                    fw = null;
+                    Log.logError("cannot set log_file to "+newFilename);
+                }
+            }
+
+        }
+
+        /*
+         * insert today's date to given filename
+         */
+        private static String getDatedFilename(String filename) {
+            String newFilename = "";
+            LocalDate today = LocalDate.now();
+            int i = filename.lastIndexOf('.');
+            if (i > 0) {
+                newFilename = filename.substring(0, i) + today + filename.substring(i);
+            }
+            else {
+                newFilename = filename + today;
+            }
+            return newFilename;
+        }
+
+    }
+
+    /*
+     * to be called by each HttpHandler when a http request is received 
+     * for triggering log rotation if day has changed
+     *
+     */
+    public static void checkLogRotation() {
+        if (fl != null && fl instanceof RotatingFileLogger) {
+            ((RotatingFileLogger) fl).checkRotation();
+        }
+    }
+
     static FileLogger fl = null;
 
 
@@ -80,7 +146,8 @@ public class SmsServer {
          * for configured service types
          */
 
-    	boolean startServer = false;
+        boolean startServer = false;
+        ExecutorService executor = null;
         
         // read server configuration
         ServerConfig sc = new ServerConfig(configFile);
@@ -94,22 +161,35 @@ public class SmsServer {
 
             int logStderr = sc.getServiceConfig(null).getConfigEntryInt(ServerConfig.CONFIG_LOG_STDERR);                    
 
-            if (logStderr <0) {
+            if (logStderr < 0) {
                 logStderr = 1;
             }
 
             int logAppend = sc.getServiceConfig(null).getConfigEntryInt(ServerConfig.CONFIG_LOG_APPEND);                    
+            int logRotate = sc.getServiceConfig(null).getConfigEntryInt(ServerConfig.CONFIG_LOG_ROTATE);
 
-            if (logAppend <0) {
+            if (logAppend < 0 || logRotate > 0) {
+                // default is append, logRotate implies logAppend
                 logAppend = 1;
             }
             
             String logFile = sc.getServiceConfig(null).getConfigEntry(ServerConfig.CONFIG_LOG_FILE);
             
             if (logFile != null) {
-                Log.setLogger(fl = new FileLogger(logFile, (logStderr == 0 ? false : true), (logAppend == 0 ? false : true)));
+                if (logRotate > 0) {
+                    Log.setLogger(fl = new RotatingFileLogger(logFile, (logStderr == 0 ? false : true), (logAppend == 0 ? false : true)));
+                }
+                else {
+                    Log.setLogger(fl = new FileLogger(logFile, (logStderr == 0 ? false : true), (logAppend == 0 ? false : true)));
+                }
             }
             
+            // get (optional) threadPoolSize
+            int threadPoolSize = sc.getServiceConfig(null).getConfigEntryInt(ServerConfig.CONFIG_THREADPOOLSIZE);
+            if (threadPoolSize > 0) {
+                executor = Executors.newFixedThreadPool(threadPoolSize);
+                Log.logInfo("created a threadpool of "+threadPoolSize+ " threads");
+            }
 
             // get port from default config
             int port = sc.getServiceConfig(null).getConfigEntryInt(ServerConfig.CONFIG_PORT);
@@ -133,7 +213,7 @@ public class SmsServer {
                         }
                     }
                     if (startServer) {
-                        server.setExecutor(null);
+                        server.setExecutor(executor);
                         server.start();
                     }
                     

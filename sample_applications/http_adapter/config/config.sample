@@ -10,11 +10,17 @@ port=8081
 # log file name            
 log_file=OpaaliLog.txt   
 # log level: 0=NONE, 1=ERROR, 2=WARNING, 3=INFO, 4=DEBUG,
-log_level=2                
+log_level=3
 # always log to stderr too: 0=no, 1=yes
 log_stderr=1
 # append to existing log file: 0=no, 1=yes
-log_append=1       
+log_append=1
+# log_rotate - insert current date before last dot in filename: 0=no 1=yes
+#log_rotate=1
+
+# set the threadpool size for http-server (optional, default is 1)
+#threadPoolSize=10
+
 
 # service sections [name:type]            
 [send:cgw]
@@ -24,6 +30,13 @@ cgwCharset=ISO-8859-1
 # replace these with your own credentials (these won't work)      
 applicationUserName=b535b0c5e5ae815cea82db6b32b5095a
 applicationPassword=1%AMCC?u
+
+# mask specified request parameters with '*' in log at log_level info
+# -format: (key, position, length)
+# -replaces key value (from left to right) starting from given position with '*' up to given length or end of value
+# -if position is negative, applies mask right to left from end of value
+# -length is optional, if omitted applies mask until the end/start of value
+#log_mask=(to,-2,4),(msg,15)
             
            
 # end of config"

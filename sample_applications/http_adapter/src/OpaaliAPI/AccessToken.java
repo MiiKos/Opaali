@@ -126,6 +126,9 @@ public class AccessToken {
                 // failure - let the caller decide how to proceed (retry or fail)
                 Log.logError("authentication failure (rc="+http_rc+(policyError != null ? ", "+policyError+")" : ")"));
             }
+            else {
+                Log.logInfo("successful authentication towards API");
+            }
         }
         return access_token;
     }

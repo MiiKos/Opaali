@@ -137,10 +137,15 @@ public class SmsServer {
         }
     }
 
-    static FileLogger fl = null;
+    private static FileLogger fl = null;
 
 
     public SmsServer(String configFile) {
+        this(configFile, "version unknown");
+    }
+
+
+    public SmsServer(String configFile, String versionString) {
         /*
          * read service configuration from config file and assign handlers
          * for configured service types
@@ -184,6 +189,10 @@ public class SmsServer {
                 }
             }
             
+            // log startup message as soon as we have logger set
+            versionString = VersionInfo.versionString;
+            Log.logInfo("starting up ("+versionString+")");
+
             // get (optional) threadPoolSize
             int threadPoolSize = sc.getServiceConfig(null).getConfigEntryInt(ServerConfig.CONFIG_THREADPOOLSIZE);
             if (threadPoolSize > 0) {
@@ -246,7 +255,8 @@ public class SmsServer {
         Log.setLogLevel(Log.ALL);
         Log.logInfo("Default CharSet:"+Charset.defaultCharset());
         
-        SmsServer server = new SmsServer(args.length > 0 ? args[0] : "config.txt");
+        SmsServer server = new SmsServer(args.length > 0 ? args[0] : "config.txt", args.length > 1 ? args[1] : "unknown version");
+
         
         // add shutdown handler to write a log entry about shutting down 
         // (this only works if the JVM exits when this application exits) 

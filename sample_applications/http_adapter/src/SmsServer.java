@@ -21,6 +21,7 @@
 public class SmsServer {
 
 	public static void main(String[] args) {
+		smsServer.VersionInfo.setVersionInfo(VersionInfo.versionString);
 		if (args.length == 0) {
 			smsServer.SmsServer.main(args);
 		}
@@ -37,7 +38,7 @@ public class SmsServer {
 			}
 			*/
 			if (args.length == 1) {
-				smsServer.SmsServer.main(args);
+				smsServer.SmsServer.main(new String[]{args[0], VersionInfo.versionString});
 			}
 			else {
 				System.err.println("usage: java -jar SmsServer.jar [configurationfile]");

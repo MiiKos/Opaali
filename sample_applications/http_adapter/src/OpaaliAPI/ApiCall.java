@@ -188,6 +188,7 @@ public class ApiCall {
     public static class DeliveryInfo {
         public final String address;
         public final int deliveryStatus;
+        public final String deliveryStatusStr;
         public final String description;
         public final int DeliveryNotificationNotSupported = 0;
         public final int DeliveredToNetwork = 1;
@@ -199,6 +200,7 @@ public class ApiCall {
         DeliveryInfo(String address, String deliveryStatusStr, String description) {
             this.address = address;
             this.description = description;
+            this.deliveryStatusStr = deliveryStatusStr;
             if ("DeliveredToNetwork".equals(deliveryStatusStr)) {
                 deliveryStatus = DeliveredToNetwork; 
             }
@@ -216,6 +218,11 @@ public class ApiCall {
             }
         }
         
+        @Override
+        public String toString() {
+            return "{deliveryInfo: address: "+address+", deliveryStatus: "+deliveryStatusStr+(description != null ? ", description: "+description : "")+"}";
+        }
+
     }
 
     

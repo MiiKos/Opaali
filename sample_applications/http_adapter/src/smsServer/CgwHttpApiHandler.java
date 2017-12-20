@@ -80,17 +80,17 @@ public class CgwHttpApiHandler implements HttpHandler {
         String queryString = x.getRequestURI().getRawQuery();
         
         QueryString params = ((queryString != null && queryString.length() > 0) ? new QueryString(queryString) : null);
-        
+
         //Log.logDebug(params.toString());
-        
+
         HttpResponse resp = translateCGW2OpaaliRequest(params);
         
         Log.logDebug("CGWHandler response: HTTP " + resp.rc + ": " + resp.responseBody);
         
-           Headers responseHeaders = x.getResponseHeaders();
-           for (String key: resp.headers.keySet()) {
+        Headers responseHeaders = x.getResponseHeaders();
+        for (String key: resp.headers.keySet()) {
             responseHeaders.set(key, resp.headers.get(key));
-           }
+        }
 
         x.sendResponseHeaders(resp.rc, resp.responseBody.length());
         OutputStream os = x.getResponseBody();
@@ -144,7 +144,7 @@ public class CgwHttpApiHandler implements HttpHandler {
         String responseTemplate = "<html><head><title>Send SMS result</title></head><body><h2>Delivery result</h2>%1$s<br></body></html>";
 
         headers.put("content-type", "text/html");
-        
+
         if (params == null) {
             // no parameters!
             Log.logDebug("NO PARAMS!");
@@ -157,19 +157,19 @@ public class CgwHttpApiHandler implements HttpHandler {
             String from = params.getParam("from");
             String[] to = params.getParamList("to");
             String msg = params.getParam("msg");
-        
+
             Log.logDebug("checking mandatory params");
-        
+
             // verify that mandatory parameters are present
             if (from == null || from.length() == 0) {
                 rc = 401;
-                    responseBody = String.format(responseTemplate, "Missing sender address in HTTP request.<br><br>");
+                responseBody = String.format(responseTemplate, "Missing sender address in HTTP request.<br><br>");
             } else if (to == null || to.length == 0) {
                 rc = 401;
-                    responseBody = String.format(responseTemplate, "Missing recipient address in HTTP request line.<br><br>");
+                responseBody = String.format(responseTemplate, "Missing recipient address in HTTP request line.<br><br>");
             } else if (msg == null || msg.length() == 0) {
                 rc = 401;
-                    responseBody = String.format(responseTemplate, "Missing message content in HTTP request.<br><br>");
+                responseBody = String.format(responseTemplate, "Missing message content in HTTP request.<br><br>");
             } else {
 
                 // get possible optional parameters
@@ -235,7 +235,7 @@ public class CgwHttpApiHandler implements HttpHandler {
                 }
 
 
-                
+
                 // make the actual request to Opaali-API
                 String resourceURL = MessagingAPI.outboundMessageRequest(access_token,
                                                                          to,
@@ -243,7 +243,7 @@ public class CgwHttpApiHandler implements HttpHandler {
                                                                          senderName,
                                                                          null, //no receiptRequest
                                                                          null, //no clientCorrelator
-                                                                         null, //no chargingInfo,
+                                                                         null, //no chargingInfo, 
                                                                          new OutboundSMSTextMessage(msg));    // charset?
 
                 Log.logDebug("resourceURL="+resourceURL);
@@ -267,7 +267,7 @@ public class CgwHttpApiHandler implements HttpHandler {
                             }
                             else {
                                 str.append("Failure: ").append(dI.address).append(": ").append("Message sending failed.").append(dI.description != null ? "("+dI.description+")" : "").append("<br>");
-                                    Log.logWarning(dI.toString());
+                                Log.logWarning(dI.toString());
                             }
                         }
                     }

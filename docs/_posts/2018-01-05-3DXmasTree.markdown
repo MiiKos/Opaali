@@ -1,0 +1,451 @@
+---
+layout:     post
+title:      "Morse coding 3D Xmas Tree"
+subtitle:   
+date:       2018-01-05 10:10:00
+author:     "JPLa"
+header-img: "img/3DXmasTree-1.jpg"
+---
+Here is a little seasonal IOT example which I (almost) finished during my Xmas Holiday.
+
+This Xmas I got a __3D Xmas Tree__ from [The PiHut](http://thepihut.com) for my [Raspberry Pi](http://raspberrypi.org) SBC (_Single Board Computer_).
+
+While looking for software to make the LEDs on the tree to blink, I found code for _converting text to Morse Code_ [here](https://github.com/ppumkin/thepihut3dxmastree-examples).
+
+So I decided to make an Opaali application which lets you _SMS your message to be blinked_ and you would also get the _text in Morse Code_ as a response (_just in case you are nowhere near to see the actual tree blinking -- welcome to the wonderful world of Internet Of Things (IOT)_). 
+
+## Hacking together a Python script
+
+I'm not really much of a _Python coder_, but I managed to hack together the following program from the bits and pieces available at that GitHub repository.
+* first I converted the Morse Code example to _get its input from the command line_ instead of querying it interactively. 
+* I also made the code to _print out the morse code_ it had blinked
+* Because a bare tree with only the **star** lit looked rather sad, I took parts from another example to _randomly light the red "candles" when a new message starts_
+
+(_I also made the text to be blinked to be the second command line parameter so that I could include the message senderAddress as the first parameter...I'll tell you why a little later._)
+
+**Here is my hacked-together morsecode.py Python script:**
+```Python
+#!/usr/bin/python
+# coding: ISO-8859-15
+
+import sys
+import random
+
+from gpiozero import LEDBoard
+from gpiozero import LED
+from time import sleep
+
+CODE = {' ': ' ',
+        "'": '.----.',
+        '(': '-.--.-',
+        ')': '-.--.-',
+        ',': '--..--',
+        '-': '-....-',
+        '.': '.-.-.-',
+        '/': '-..-.',
+        '0': '-----',
+        '1': '.----',
+        '2': '..---',
+        '3': '...--',
+        '4': '....-',
+        '5': '.....',
+        '6': '-....',
+        '7': '--...',
+        '8': '---..',
+        '9': '----.',
+        ':': '---...',
+        ';': '-.-.-.',
+        '?': '..--..',
+        'A': '.-',
+        'B': '-...',
+        'C': '-.-.',
+        'D': '-..',
+        'E': '.',
+        'F': '..-.',
+        'G': '--.',
+        'H': '....',
+        'I': '..',
+        'J': '.---',
+        'K': '-.-',
+        'L': '.-..',
+        'M': '--',
+        'N': '-.',
+        'O': '---',
+        'P': '.--.',
+        'Q': '--.-',
+        'R': '.-.',
+        'S': '...',
+        'T': '-',
+        'U': '..-',
+        'V': '...-',
+        'W': '.--',
+        'X': '-..-',
+        'Y': '-.--',
+        'Z': '--..',
+        '_': '..--.-'}
+
+led = LED(2)
+led.off()
+
+def dot():
+    led.on()
+    sleep(0.2)
+    led.off()
+    sleep(0.2)
+
+def dash():
+    led.on()
+    sleep(0.5)
+    led.off()
+    sleep(0.2)
+
+
+treelights=[ 18, 5, 9, 11, 21, 10, 7, 12, 6, 1,14, 3, 20, 24, 13, 15,2, 17, 16, 23,8, 22, 4, 19 ] 
+treemap={ 1:4, 7:5, 16:6, 22:7, 6:8 , 14:9, 8:10, 21:11, 15:12, 3:13, 19:14, 2:15, 9:16, 10:17, 20:18, 18:19,17:20, 4:21, 24:22, 23:23, 13: 
+24, 5:25, 12:26, 11:27 
+} 
+
+leds=LEDBoard(*range(4,28), pwm=True) 
+
+def labelToPin(l): 
+  return treemap[l] 
+
+def toBoard(l): 
+  return labelToPin(l)-4 
+
+# light up some random candles
+for i in treelights: 
+#    sleep(0.4) 
+    if random.randint(0,1) > 0:
+        leds.on(toBoard(i))
+    else:
+        leds.off(toBoard(i))
+
+# we want two command line arguments
+if len(sys.argv) == 3:
+    s=sys.argv[1] + ' "'
+    input = sys.argv[2]
+    for letter in input:
+            if not letter.upper() in CODE:
+                ltr = '?'
+            else:
+                ltr = letter
+            for symbol in CODE[ltr.upper()]:
+                s+=symbol
+                if symbol == '-':
+                    dash()
+                elif symbol == '.':
+                    dot()
+                else:
+                    sleep(0.5)
+            sleep(0.5)
+            s+=" "
+    print s+'"'
+```
+----
+
+## Building a Morse Code Service
+
+I made a quick Functional Specification of a Morse Code Service consisting of three separate applications:
+1. _receiveapp_ to poll Opaali API with _InboundMessageRetrieveAndDeleteRequest_
+2. _morsecodeapp_ to convert text to morse code and blink it (my Python script)
+3. _sendapp_ to send the morse code as a response using Opaali API and _OutboundMessageRequest_
+
+![3D Xmas Tree Morse Code App Plan]({{ site.url }}{{ site.ref_path }}/img/3dtreemorsecode-plan.png)
+*Original specification for the morsecode app*
+
+My Raspberry Pi has wireless LAN which I use to access the Opaali API, but as I don't keep it online 24/7 or even have a fixed ip-address, using _Push Notification_ for incoming messages would be a bad idea. _Polling for received messages_ makes much more sense for IOT devices.
+ 
+----
+
+## How to Query and Response when you are not allowed to do that?
+
+For an application that receives a request as a MO SMS message and sends a confirmation message back, __Query-Response__ would be the most logical type of application. You can do that, providing that your service contract is for _"Telia Messaging Interface"_. But if you have _"Telia Mobile Message"_ instead, you don't have access to Query-Response applications. However, you can implement that functionality using **two** separate applications:
+* Receive-Only
+* BULK MT
+
+I'll show you how to do it this way.
+
+
+
+![Using Receive-Only and BULK MT Apps]({{ site.url }}{{ site.ref_path }}/img/BulkAndReceive.png)
+*Implementing Morse Code Service*
+
+You only need to write _one application program_ which will make _API requests_ to two _Opaali applications_. Just remember, that you will need _two access_tokens_ and you need to authenticate separately to the two applications using _credentials specific to that application_. It is really not compilicated at all.
+
+----
+ 
+## Prototyping with shell scripts
+
+Many of my examples in this blog have been written as _bash shell scripts_, mainly because
+* they are usually short enough to show here in full
+* it is quicker to use trial-and-error programming paradigm with an interpreted language
+* nowadays you can run bash scripts on most platforms (Unix/Linux, MacOS, Windows, even Raspberry Pi SBC!) 
+
+Shell scripts are a nice _prototyping tool_, because even if you don't know the _smartest way_ to do what you want, you can usually at least come up with a _terribly complicated and inefficient way to get what you want_.
+
+(_And I was on Holiday so I didn't want to use much energy on writing good, well designed software..._)
+
+----
+So my design was to have _three applications_ (scripts) running _simultaneously_ and passing information between them _asynchronously using queues_ implemented as simple files (_because I was feeling lazy and was on Holiday anyway..._)
+
+One application would _write a line of output to a file_ and the next one would _wait until there was something new_ in the file and then _read the new line for its input_. Sounds complicated to implement _this waiting for input_...unless I can use an _existing command_ to do this...like when _listing new lines from a log file_ using <code>tail</code>!
+
+Something like this:
+- receiveapp writes its output line by line to file _inqueue_:
+```bash
+$ ./receiveapp.sh >inqueue
+```
+- <code>tail</code> waits until there are new lines in file _inqueue_ and then outputs the **last line** only (if the file is empty it will wait until there is something to read)
+- tail output is piped to <code>xargs</code>, which will extract two parameters from the line and give them as command line parameters to the _morsecode.py_ python script
+- morsecode.py output is written as one line to file _outqueue_ 
+```bash
+$ tail -f -n 1 inqueue | xargs -n 2 ./morsecode.py >outqueue
+```
+- similarly new lines from _outqueue_ are passed as two command line parameters to _sendapp_ 
+```bash
+$ tail -f -n 1 outqueue | xargs -n 2 ./sendapp.sh
+```
+If you didn't guess already, the two parameters are the _senderAddress_ and _message_ so that sendapp can send the response message to the phone number where the original query came from.
+
+(_...and it took me a while to realise that_ I don't really need inqueue and outqueue at all, _because I can just use pipes on a single line...no need for <code>tail</code> either!_)
+```bash
+$ ./receiveapp.sh | xargs -n 2 ./morsecode.py | xargs -n 2 ./sendapp.sh
+```
+----
+
+## Implementing sendapp.sh
+
+I'll start with _sendapp.sh_, because we already have implemented [a shell script for sending](https://github.com/MiiKos/Opaali/tree/master/sample_applications/send) (see [Writing a send application as a shell script]({{ site.baseurl }}{% post_url 2017-08-07-Writing a send application as a shell script %}))
+
+In fact, we only need _sendapp.sh_ for passing the two parameters using the correct format required by _send.sh_:
+```bash
+#!/bin/bash
+./send.sh -s '91589' -r "$1" -m "$2"
+```
+(_91589 is the_ short code _for my test application_)
+
+----
+
+## Implementing receiveapp.sh
+
+We need to write code for the _receiveapp.sh_, but we can reuse bits and pieces from our existing _send.sh_ script:
+```bash
+#!/bin/bash
+#
+# receiveapp.sh - an application for polling incoming text messages using Opaali API
+#
+# This is an example of using Opaali API from a shell script
+# to poll for received MO SMS messages
+#
+# This is an example and not intended for production use as such
+#
+# Author: jlasanen
+#
+
+# resource Id for receive service
+RESID='291ae4cc-51b5-48b9-9b8f-4d8e88a7c68a'
+
+# file where your credentials are stored
+CREDENTIALS_FILE=.opaalicredentials_ro
+
+# read service specific credentials from a file
+# containing the following two entries
+# (uncomment and replace with your own credentials,
+#  try to keep the file in a safe place so that your
+#  credentials won't leak for others to use)
+#applicationUserName="b535b0c5e5ae815cea82db6b3b25095a"
+#applicationPassword='1%AMCC?w'
+function read_credentials {
+    #param 1: filename
+
+    source "$1"
+}
+
+
+# print usage instructions and exit
+function usage {
+    #param 1: commandName
+
+    echo "Usage: $1 " >/dev/stderr
+    echo "       this application polls for received MO messages from Opaali and writes the senderAddress and message to stdout" >/dev/stderr
+    exit 1
+}
+
+# print error message and exit
+function error_exit {
+    #param 1: commandName
+    #param 2: msg
+    #param 3: param
+
+    echo "$1: $2 $3" >/dev/stderr
+    usage "$1"
+}
+
+
+
+# authenticate and get access_token
+function authenticate {
+    #param 1: Application User Name
+    #param 2: Application Password
+    #global: access_token 
+    #global: emsg
+    
+    # construct basic_auth string by combining username and password separated
+    # with a colon and base64-encoding it all
+    basic_auth=$(echo -n "$1:$2" |base64)
+    #echo $basic_auth 
+    # call Opaali API and capture the interesting parts from the output
+    local output=$(curl -k -s -d grant_type=client_credentials https://api.opaali.telia.fi/autho4api/v1/token --header "Content-Type:application/x-www-form-urlencoded" --header "Authorization: Basic $basic_auth" | grep -E 'access_token|error')
+    #echo $output 
+    # post processing: check for success or failure
+    # we could test the return value, but choose to check the output only
+    
+    # try grabbing access_token from the output
+    access_token=$(echo "$output" | grep access_token | cut -d\: -f2 | tr -d "\", ")
+    if [[ -z "$access_token" ]]; then
+        # access_token is empty so something went wrong
+        local error=$(echo "$output" | grep 'error' )
+        if [[ -n "$error" ]]; then
+            # we got error message from Opaali API
+            emsg=$(echo "$error" | cut -d\: -f2)
+        else
+            # something went wrong with curl (now testing return value would have beeen useful...)
+            emsg="unknown error"
+        fi
+        return 1
+    fi
+    return 0
+}
+
+
+# main program
+function main {
+    #params: all command line parameters
+    #parse_arguments "$@"
+    
+    read_credentials "${CREDENTIALS_FILE}"
+    
+    emsg=""
+    authenticate "$applicationUserName" "$applicationPassword"
+    
+    if [[ "$?" -ne 0 ]]; then
+        error_exit "$0" "$emsg"
+    fi
+
+    # enter main loop
+    main_loop    
+}
+
+```
+We store the _ResourceID_ for our _Receive-Only application_ in global variable __RESID__ and store the _credentials_ into a new file _.opaalicredentials_ro_.
+
+As _receiveapp.sh_ does not use any command line parameters there is no need for _parse_arguments_ so we can comment out the function call. In the main program we'll just call _authenticate function_ followed by calling the _main_loop function_:
+```bash
+
+# access_token is kept in a global variable
+access_token=
+
+# polling interval between checking incoming messages
+INTERVAL=30
+
+# loop checking for new messages 
+function main_loop {
+    #params: none
+    #global: access_token 
+    #global: emsg
+    #global: RESID
+    #global: INTERVAL
+
+    while [[ true ]] 
+    do
+        # check for incoming messages
+        check_incoming $RESID
+        if [[ -z $access_token ]] 
+        then
+            #echo no access token, get one
+            emsg=""
+            authenticate "$applicationUserName" "$applicationPassword"
+        fi
+        # wait, do not call Opaali API too often!
+        sleep $INTERVAL
+    done
+}
+
+``` 
+The _main_loop_ loops forever calling _check_incoming function_ with the _ResourceID_ to process received MO messages, if there are any.
+After that you should wait for a while before doing this again, _because calling Opaali API too frequently may degrade the performance of the whole system_ and you will hit your **TPS limit** after which _any calls to Opaali API will fail until you are allowed to continue (the default limit is 10 TPS!)_.
+  
+```bash
+
+# call Opaali API and get possibly available new MO messages
+function check_incoming {
+    #params: resource Id for receive service
+    #global: access_token 
+    #global: emsg
+    #global: RESID
+
+    # call Opaali API and capture the interesting parts from the output
+    local output=$(curl -s -k -d "{\"inboundMessageRetrieveAndDeleteRequest\":{\"retrievalOrder\":\"OldestFirst\",\"useAttachmentURLs\":\"true\"}}" https://api.sonera.fi/production/messaging/v1/inbound/registrations/$1/messages/retrieveAndDeleteMessages --header "Content-Type: application/json" --header "Accept: application/json" --header "Authorization: Bearer $access_token" | grep -e '"message"' -e '"error"' -e '"senderAddress"')
+    # check output for senderAddress
+    local msisdn=$(echo "$output" | grep '"senderAddress"' | cut -d: -f2- | cut -d: -f2 | tr -d '",')
+    # check output for message data
+    local data=$(echo "$output" | grep '"message"' | cut -d: -f2- | xargs -n 1)
+    if [[ -n "$data" ]]; then
+        # we may get multiple messages in one call so lets store msisdn and data into arrays
+        mapfile -t msisdns < <(echo "$msisdn")
+        mapfile -t datas < <(echo "$data")
+        # get the size of array(s) and loop outputting matching msisdn and message
+        count=${#msisdns[@]}
+        for ((index=0; index < ${#msisdns[@]}; index++)); do
+            echo "${msisdns[index]} \"${datas[index]}\""
+        done
+    fi
+    # check for errors
+    local error=$(echo "$output" | grep '"error"' )
+    if [[ -n "$error" ]]; then
+        # we got error message from Opaali API
+        emsg=$(echo "$error" | cut -d\: -f2 | xargs -n 1)
+        if [[ "$emsg" = "invalid_token" ]] 
+        then 
+            # access_token has expired, by setting it to empty string we will trigger reauthentication
+            access_token=
+        fi
+    fi
+
+}
+```
+_check_incoming function_ will call _retrieveAndDeleteMessages_ of the Opaali API and store the lightly processed output to variable _output_ (just like in our previous code examples).
+
+My _shell script examples_ rely on the fact that Opaali API returns _JSON data_ nicely formatted with each element on its own line. I don't think the API actually guarantees this, so you really should use a proper JSON parser (_like I use in my Java examples_) in production code. This works well for prototyping purposes, though.
+
+So I use <code>grep</code> to extract _senderAddress_ and _message_ values to their own variables. You can get zero, one or _multiple_ received messages in one call to _retrieveAndDeleteMessages_ so we need to store them in _arrays_ and in the correct order so that we can link the correct pair of sender and message when we send the reply.
+
+The code for doing this is a bit too complicated to explain here, so I'll let you _google how it works_ (_...I had to do a lot of googling before I got it to work_).
+
+If you are wondering why I do the same thing seemingly twice in "| cut -d: -f2- | cut -d: -f2 |" that is because the senderAddress line looks like this:
+```JSON
+      "senderAddress" : "tel:+358401234567",
+```
+The first <code>cut</code> returns everything after the first colon, the second cut cuts out the _"tel:_ prefix and finally " tr -d '",' "
+ removes the trailing _",_. (Note that the _message_ can also contain the ':' character.)
+
+We also need to check against getting an "invalid_token" error _after the access_token has expired_. Setting _access_token_ value to empty will trigger reauthentication in the _main_loop_.
+
+And at the end of the script we should place our call to the main program:
+```bash
+
+# call main program
+main "$@"
+
+# end of script
+
+```
+
+## Look! It works!
+
+Here is a blurry video of me testing by submitting my latest project status report to the Morse Code service. Due to the 30 second polling interval the blinking starts somewhere around 0:43 into the video.
+
+{% include youtube.html id="Po5Ly1vMeGI" %}
+
+----

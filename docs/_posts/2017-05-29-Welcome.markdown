@@ -7,7 +7,7 @@ author:     "JPLa"
 header-img: "img/blog_logo-blank_1600x500.jpg"
 ---
 
-This is a blog about Telia Finland's Operator Support Platform _Opaali_ -- specifically about its programming interface the **Opaali API**.
+This is a blog about Telia Operator Service Platform _Opaali_ -- specifically about its programming interface the **Opaali API**.
 
 # Welcome to the Opaali (API) Blog #
 

@@ -10,6 +10,7 @@ email_support: opaali-tuki@teliacompany.com
 opaali_tuki: opaali-tuki@teliacompany.com
 opaali_portal: "http://developer.opaali.telia.fi"
 opaali_forum: "http://developer.opaali.telia.fi/g/forum"
+opaali_contact: "https://developer.opaali.telia.fi/contact"
 ref_path: "/Opaali"
 
 # Google Analytics

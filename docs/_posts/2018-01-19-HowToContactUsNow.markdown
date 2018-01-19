@@ -30,7 +30,7 @@ Apologies to those of you, _who have asked about something on the Opaali Forum b
 
 The _Opaali Forum_ was our first channel towards the users where we tried to give examples of using the _Opaali API_. That didn't work too well, as the _text formatting capabilities were very limited_. There was very little discussion and all the questions would have been more quickly answered by Opaali Support if they had been entered through the Contact Us form.
 
-This [blog]({{ site.url }}) effectively replaced the Forum as our _information channel_ towards Opaali users. And the _opaali-tuki mailbox_ and the [Contact Us]({{ site.opaali_contact }}) form work much better as a _channel from you to us_. The Forum has not been closed down, but I don't encourage using it as those other channels work so much better. Maybe one day it will be replaced with a proper external discussion forum.  
+This [blog]({{ site.url }}{{ site.ref_path }}) effectively replaced the Forum as our _information channel_ towards Opaali users. And the _opaali-tuki mailbox_ and the [Contact Us]({{ site.opaali_contact }}) form work much better as a _channel from you to us_. The Forum has not been closed down, but I don't encourage using it as those other channels work so much better. Maybe one day it will be replaced with a proper external discussion forum.  
 
 ----
 

@@ -52,7 +52,7 @@ public class ServerConfig {
      */
     public ServerConfig() {
         defaultConfig = new ServiceConfig(null, null); 
-        defaultConfig.put("API_HOST", "api.sonera.fi");
+        defaultConfig.put("API_HOST", "api.opaali.telia.fi");
         defaultConfig.put("log_level", "4");
         OpaaliAPI.Config.setConfig(defaultConfig);
     }

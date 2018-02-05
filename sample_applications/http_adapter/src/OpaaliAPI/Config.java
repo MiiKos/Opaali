@@ -43,7 +43,7 @@ public class Config {
     static {
         // set default config
         configSettings = new HashMap <String, String>();
-        configSettings.put("API_HOST", "api.sonera.fi");
+        configSettings.put("API_HOST", "api.opaali.telia.fi");
         serviceSettings = new HashMap <String, HashMap<String, String>>();
     }
     

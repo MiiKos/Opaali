@@ -176,14 +176,14 @@ public class CgwHttpApiHandler implements HttpHandler {
                 //TODO: implement more functionality
 
                 // make conversions to the message content
-                msg = ApiCall.escapeJSON(msg);
-                msg = ApiCall.escapeSweFin(msg);
                 try {
                     msg = URLDecoder.decode(msg, cgwCharset);
                 } catch (UnsupportedEncodingException e) {
                     Log.logWarning("CGW:failed to URL decode using "+cgwCharset);
                     msg = URLDecoder.decode(msg);
                 }
+                msg = ApiCall.escapeJSON(msg);
+                msg = ApiCall.escapeSweFin(msg);
                 
                 // make sure we have a valid session
                 if (!failureMode && access_token == null) {

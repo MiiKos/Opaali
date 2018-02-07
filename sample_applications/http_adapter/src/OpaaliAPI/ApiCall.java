@@ -90,8 +90,26 @@ public class ApiCall {
                 case '\b':
                     str.append("\\b");
                     break;
+                case '\f':
+                    str.append("\\f");
+                    break;
+                case '\n':
+                    str.append("\\n");
+                    break;
+                case '\r':
+                    str.append("\\r");
+                    break;
+                case '\t':
+                    str.append("\\t");
+                    break;
                 default:
+                    if (Character.compare(c, '\u001f') <= 0) {
+                        // escape control characters \u0000..\u001f
+                        str.append("\\u"+String.format("%04x", (int) c));
+                    }
+                    else {
                     str.append(c);
+                    }
                     break;
             }
         }

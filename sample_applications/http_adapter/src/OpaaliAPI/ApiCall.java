@@ -108,7 +108,7 @@ public class ApiCall {
                         str.append("\\u"+String.format("%04x", (int) c));
                     }
                     else {
-                    str.append(c);
+                        str.append(c);
                     }
                     break;
             }

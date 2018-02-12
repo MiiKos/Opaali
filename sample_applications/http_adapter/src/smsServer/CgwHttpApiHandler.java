@@ -173,119 +173,127 @@ public class CgwHttpApiHandler implements HttpHandler {
             } else {
 
                 // get possible optional parameters
-                //TODO: implement more functionality
+                 if (params.has("validateonly")) {
+                    // validate request syntax without actually making the request to OpaaliAPI
+                     rc = 200;
+                     responseBody = "<html><head><title>Send SMS parameters validated</title></head><body><h2>Send SMS parameters validated</h2>No actual message sent.<br></body></html>";
+                     Log.logInfo("validating request parameters without making an actual API request");
+                 }
+                 else {
 
-                // make conversions to the message content
-                try {
-                    msg = URLDecoder.decode(msg, cgwCharset);
-                } catch (UnsupportedEncodingException e) {
-                    Log.logWarning("CGW:failed to URL decode using "+cgwCharset);
-                    msg = URLDecoder.decode(msg);
-                }
-                msg = ApiCall.escapeJSON(msg);
-                msg = ApiCall.escapeSweFin(msg);
-                
-                // make sure we have a valid session
-                if (!failureMode && access_token == null) {
-                    access_token = AuthAPI.requestAccessToken(username, password);
-                    //TODO: error handling
-                    /*
-                     * if (access_token == null) shut down this handler (unrecoverable error)
-                     * if (access_token != null && access_token.length() == 0) retry (one or more?) after 1-2 seconds
-                     * if (access_token != null && access_token.length() > 0) go make the actual API call
-                     *
-                     * potential problem: if retry takes a long time the caller may time out even when the eventual API call succeeds
-                     *
-                     */
-                    if (access_token == null) {
-                        // unrecoverable error
-                        //TODO: yes this is possible, due to e.g. an unrecoverable config error
-                        //log this error and return 403 or 503 or 509 immediately
-                        //TODO: should we try again or should we keep failing until this
-                        //service is restarted?
-                        Log.logError("problem with access token...");
-                        failureMode = true;
+                    // make conversions to the message content
+                    try {
+                        msg = URLDecoder.decode(msg, cgwCharset);
+                    } catch (UnsupportedEncodingException e) {
+                        Log.logWarning("CGW:failed to URL decode using "+cgwCharset);
+                        msg = URLDecoder.decode(msg);
                     }
-                    else {
-                        // success
-                        //api = new MessagingAPI(serviceName, access_token);   //TODO: not really needed?
+                    msg = ApiCall.escapeJSON(msg);
+                    msg = ApiCall.escapeSweFin(msg);
+
+                    // make sure we have a valid session
+                    if (!failureMode && access_token == null) {
+                        access_token = AuthAPI.requestAccessToken(username, password);
+                        //TODO: error handling
+                        /*
+                         * if (access_token == null) shut down this handler (unrecoverable error)
+                         * if (access_token != null && access_token.length() == 0) retry (one or more?) after 1-2 seconds
+                         * if (access_token != null && access_token.length() > 0) go make the actual API call
+                         *
+                         * potential problem: if retry takes a long time the caller may time out even when the eventual API call succeeds
+                         *
+                         */
+                        if (access_token == null) {
+                            // unrecoverable error
+                            //TODO: yes this is possible, due to e.g. an unrecoverable config error
+                            //log this error and return 403 or 503 or 509 immediately
+                            //TODO: should we try again or should we keep failing until this
+                            //service is restarted?
+                            Log.logError("problem with access token...");
+                            failureMode = true;
+                        }
+                        else {
+                            // success
+                            //api = new MessagingAPI(serviceName, access_token);   //TODO: not really needed?
+                        }
+
                     }
 
-                }
-
-                if (failureMode) {
-                    // after encountering an unrecoverable error keep returning error to caller
-                    Log.logError("unrecoverable error, returning 401 Unauthorized to request");
-                    if (responseBody.length() == 0) {
-                        responseBody = "<b>Access is denied due to probably invalid credentials in http_adapter configuration</b>";
+                    if (failureMode) {
+                        // after encountering an unrecoverable error keep returning error to caller
+                        Log.logError("unrecoverable error, returning 401 Unauthorized to request");
+                        if (responseBody.length() == 0) {
+                            responseBody = "<b>Access is denied due to probably invalid credentials in http_adapter configuration</b>";
+                        }
+                        return new HttpResponse(401, headers, responseBody);
                     }
-                    return new HttpResponse(401, headers, responseBody);
-                }
 
-                // add "tel:" prefix to international numbers (and URLdecode too...)
-                from = addTelPrefix(from);
-                for (int i = 0; i < to.length; i++) {
-                    to[i] = addTelPrefix(to[i]);
-                }
+                    // add "tel:" prefix to international numbers (and URLdecode too...)
+                    from = addTelPrefix(from);
+                    for (int i = 0; i < to.length; i++) {
+                        to[i] = addTelPrefix(to[i]);
+                    }
 
-                if (from.charAt(0) == '$') {
-                    // alphanumeric sender
-                    senderName = from.substring(1);
-                    from = null;
-                }
+                    if (from.charAt(0) == '$') {
+                        // alphanumeric sender
+                        senderName = from.substring(1);
+                        from = null;
+                    }
 
 
 
-                // make the actual request to Opaali-API
-                String resourceURL = MessagingAPI.outboundMessageRequest(access_token,
-                                                                         to,
-                                                                         from,
-                                                                         senderName,
-                                                                         null, //no receiptRequest
-                                                                         null, //no clientCorrelator
-                                                                         null, //no chargingInfo, 
-                                                                         new OutboundSMSTextMessage(msg));    // charset?
+                    // make the actual request to Opaali-API
+                    String resourceURL = MessagingAPI.outboundMessageRequest(access_token,
+                                                                             to,
+                                                                             from,
+                                                                             senderName,
+                                                                             null, //no receiptRequest
+                                                                             null, //no clientCorrelator
+                                                                             null, //no chargingInfo, 
+                                                                             new OutboundSMSTextMessage(msg));    // charset?
 
-                Log.logDebug("resourceURL="+resourceURL);
-                
-                if (resourceURL != null) {
+                    Log.logDebug("resourceURL="+resourceURL);
 
-                    /*
-                     * at this point, if there are multiple recipients, we should check the status for each using the resourceURL
-                     *
-                     */
+                    if (resourceURL != null) {
 
-                    StringBuilder str = new StringBuilder();
-                    DeliveryInfo[] dInfos = MessagingAPI.getDeliveryInfos(access_token, resourceURL);
+                        /*
+                         * at this point, if there are multiple recipients, we should check the status for each using the resourceURL
+                         *
+                         */
 
-                    for (DeliveryInfo dI : dInfos) {
-                        if (dI != null && dI.address != null) {
-                            if (dI.deliveryStatus == dI.DeliveredToNetwork ||
-                                dI.deliveryStatus == dI.DeliveredToTerminal) {
-                                str.append("Success: ").append(dI.address).append(": OK<br>");
-                                rc = CGW_RC_OK;
-                            }
-                            else {
-                                str.append("Failure: ").append(dI.address).append(": ").append("Message sending failed.").append(dI.description != null ? "("+dI.description+")" : "").append("<br>");
-                                Log.logWarning(dI.toString());
+                        StringBuilder str = new StringBuilder();
+                        DeliveryInfo[] dInfos = MessagingAPI.getDeliveryInfos(access_token, resourceURL);
+
+                        for (DeliveryInfo dI : dInfos) {
+                            if (dI != null && dI.address != null) {
+                                if (dI.deliveryStatus == dI.DeliveredToNetwork ||
+                                    dI.deliveryStatus == dI.DeliveredToTerminal) {
+                                    str.append("Success: ").append(dI.address).append(": OK<br>");
+                                    rc = CGW_RC_OK;
+                                }
+                                else {
+                                    str.append("Failure: ").append(dI.address).append(": ").append("Message sending failed.").append(dI.description != null ? "("+dI.description+")" : "").append("<br>");
+                                    Log.logWarning(dI.toString());
+                                }
                             }
                         }
+
+                        responseBody = String.format(responseTemplate, str);
+                    }
+                    else {
+                        // return failure for all recipients
+                        StringBuilder str = new StringBuilder();
+
+                        for (String s : to) {
+                            str.append("Failure: ").append(s).append(": ").append("Message sending failed.").append("<br>");
+                        }
+
+                        responseBody = String.format(responseTemplate, str);
                     }
 
-                    responseBody = String.format(responseTemplate, str);
                 }
-                else {
-                    // return failure for all recipients
-                    StringBuilder str = new StringBuilder();
-
-                    for (String s : to) {
-                        str.append("Failure: ").append(s).append(": ").append("Message sending failed.").append("<br>");
-                    }
-
-                    responseBody = String.format(responseTemplate, str);
-                }
-
             }
+
         }
 
         // ready to return response        

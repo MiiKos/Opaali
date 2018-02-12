@@ -60,6 +60,9 @@ public class ApiCall {
                 case 403: // FORBIDDEN
                     // this is handled in doRetry()
                     break;
+                case 408: // REQUEST TIMEOUT
+                    // make a retry, but only once - this is handled in doRetry()
+                    break;
                 default:
                     break;
             }
@@ -302,6 +305,16 @@ public class ApiCall {
 
             
                 break;
+            case 408:
+                // possible cause: unknown
+                if (counter < 2) {
+                    Log.logError("HTTP "+resp.rc+" response from host, retrying once");
+                    return true;
+                }
+                else {
+                    return false;
+                }
+                //break;
             default:
                 // unexpected -> terminate
                 return false;

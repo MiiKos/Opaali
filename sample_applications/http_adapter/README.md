@@ -2,7 +2,7 @@
 
 This is an early version of an __HTTP adapter__ which will implement (as much as possible) the _Content Gateway HTTP interface_ for sending and receiving SMS messages.
 
-The source code (written in _Java version 8_) will be published in several steps and the first version will have very limited functionality. The code will also be virtually untested at first (read: __very buggy__) so if you are not an adventurous mind you may be better off not trying to run the latest code by yourself.
+The source code (written in _Java version 8_) will be published in several steps and the first version will have very limited functionality. The code will also be virtually untested at first (read: __probably buggy__) so if you are not an adventurous mind you may be better off not trying to run the latest code by yourself.
 
 This is work in progress. Eventually we hope this will result in a useful application that you can run in place of your current Content Gateway Provider Server. Or you can use it as an example while writing your own Java code.
 
@@ -10,8 +10,10 @@ And remember: _there will be __no__ official support for this code by Telia_!
 
 ## Building
 
-Sorry, there is no build script yet. You'll need to manage compiling the source code by yourself.
+Sorry, there is no build script at the moment. You'll need to manage compiling the source code by yourself.
 You will need an external JSON implementation which can be found here: https://github.com/stleary/JSON-java
+
+(You can find pre-built http_adapter releases from the Release page: https://github.com/MiiKos/Opaali/releases )
 
 ## Configuring
 
@@ -60,8 +62,20 @@ You have probably used Content Gateway before so you should know how to send a m
 Here is an example, anyway:
 ![sending an sms](screenshots/sending_an_sms.png)
 
-Currently the only supported parameters are _to_, _from_ and _msg_.
+Initially the only supported parameters were _to_, _from_ and _msg_.
 
 ```
 http://<host>:<port>/send?to=<recipient>&from=<sender>&msg=<message content>
+```
+
+Since then support for sending flash text messages has been added. This can be done by adding parameter _mcl=0_:
+
+```
+http://<host>:<port>/send?to=<recipient>&from=<sender>&msg=<flash message content>&mcl=0
+```
+
+There is also support for sending binary messages by adding parameter _bin_. You should specify the binary message content in hexadecimal, and typically you will also want to add a _User Data Header_ in hexadecimal using parameter _udh_.
+
+```
+http://<host>:<port>/send?to=<recipient>&from=<sender>&msg=<binary message content>&udh=<User Data Header>&bin
 ```

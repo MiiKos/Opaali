@@ -101,7 +101,7 @@ public class MessagingAPI {
                                                 ApiCall.ReceiptRequest receiptRequest,
                                                 String clientCorrelator,
                                                 ApiCall.ChargingInfo chargingInfo,
-                                                OutboundSMSTextMessage outboundSMSTextMessage) {
+                                                Message outboundSMSMessage) {
         
         return     outboundMessageRequest(access_token,
                                        null,
@@ -111,7 +111,7 @@ public class MessagingAPI {
                                        receiptRequest,
                                        clientCorrelator,
                                        chargingInfo,
-                                       outboundSMSTextMessage);
+                                       outboundSMSMessage);
     }
 
     

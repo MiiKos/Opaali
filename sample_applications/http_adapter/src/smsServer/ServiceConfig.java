@@ -28,7 +28,25 @@ public class ServiceConfig extends HashMap<String, String> {
         this.serviceName = serviceName;
     }
     
+    /*
+     * returns true if there is a valid config
+     */
+    public boolean isValid() {
+        return isValid;
+    }
+
     
+    /*
+     * set the validity of the config
+     * only the service by itself knows if its config is valid or not,
+     * the service can use this to signal that it cannot work due
+     * to misconfiguration
+     */
+    public void setValidity(boolean validity) {
+        this.isValid = validity;
+    }
+
+
     public String getServiceName() {
         return serviceName;
     }
@@ -62,5 +80,6 @@ public class ServiceConfig extends HashMap<String, String> {
     
     private String serviceName = null;
     private String serviceType = null;
+    private boolean isValid = false;
     
 }

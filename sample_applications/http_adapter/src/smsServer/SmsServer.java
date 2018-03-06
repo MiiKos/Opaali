@@ -12,20 +12,15 @@
 
 package smsServer;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.net.InetSocketAddress;
 import java.nio.charset.Charset;
-import java.time.LocalDate;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import com.sun.net.httpserver.HttpServer;
 
 import OpaaliAPI.Log;
-import OpaaliAPI.LogWriter;
 
 /*
  * smsServer: smsServer
@@ -34,97 +29,6 @@ import OpaaliAPI.LogWriter;
 
 public class SmsServer {
 
-    /*
-     * a LogWriter that writes log to a file (or to stderr if opening file fails)
-     */
-    private static class FileLogger implements LogWriter {
-
-        volatile PrintWriter fw = null;
-        boolean logStderr = true;    // always log to stderr, too
-        boolean logAppend = true;    // append to existing log file
-        
-        FileLogger(String filename, boolean logStderr, boolean logAppend) {
-            this.logStderr = logStderr;
-            this.logAppend = logAppend;
-            try {
-                fw = new PrintWriter(new BufferedWriter(new FileWriter(filename, logAppend)));
-            } catch (IOException e) {
-                fw = null;
-                Log.logError("cannot set log_file to "+filename);
-            }
-        }
-        
-        @Override
-        synchronized public void logWrite(String s) {
-            if (logStderr) {
-                System.err.println(s);
-            }
-            if (fw != null) {
-                fw.println(s);
-                fw.flush();
-            }
-        }
-        
-        public void close() {
-            if (fw != null) {
-                fw.flush();
-                fw.close();
-                fw = null;
-            }
-        }
-        
-    }
-    
-    /*
-     * a LogWriter that writes log to a file that has current date added to the filename (or to stderr if opening file fails)
-     */
-    private static class RotatingFileLogger extends FileLogger {
-
-        private final String savedFilename;
-        private LocalDate current = LocalDate.now();
-
-        RotatingFileLogger(String filename, boolean logStderr, boolean logAppend) {
-            super(getDatedFilename(filename), logStderr, logAppend);
-            savedFilename = filename;
-            current = LocalDate.now();
-        }
-
-        /*
-         * check if date in log file name should be changed
-         */
-        synchronized public void checkRotation() {
-            if (LocalDate.now().isAfter(current)) {
-                // day has changed, change log file name
-                String newFilename = getDatedFilename(savedFilename);
-                current = LocalDate.now();
-                this.close();
-                try {
-                    fw = new PrintWriter(new BufferedWriter(new FileWriter(newFilename, logAppend)));
-                } catch (IOException e) {
-                    fw = null;
-                    Log.logError("cannot set log_file to "+newFilename);
-                }
-            }
-
-        }
-
-        /*
-         * insert today's date to given filename
-         */
-        private static String getDatedFilename(String filename) {
-            String newFilename = "";
-            LocalDate today = LocalDate.now();
-            int i = filename.lastIndexOf('.');
-            if (i > 0) {
-                newFilename = filename.substring(0, i) + today + filename.substring(i);
-            }
-            else {
-                newFilename = filename + today;
-            }
-            return newFilename;
-        }
-
-    }
 
     /*
      * to be called by each HttpHandler when a http request is received 
@@ -217,7 +121,10 @@ public class SmsServer {
                             if (ServerConfig.SERVICE_TYPE_SEND.equalsIgnoreCase(serviceType)) {
                                 server.createContext("/"+serviceName, new CgwHttpApiHandler(svc)); 
                                 startServer = true;
-                                Log.logInfo("CGW HTTP API started");
+                                Log.logInfo("CGW HTTP API started at port "+port+", path /"+serviceName);
+                            }
+                            else {
+                                Log.logWarning("unknown service ["+serviceName+":"+serviceType+"] ignored");
                             }
                         }
                     }
@@ -227,7 +134,7 @@ public class SmsServer {
                     }
                     
                 } catch (IOException e) {
-                    Log.logError("CGW HTTP API failed to start");
+                    Log.logError("HTTP SERVER at port "+port+" failed to start");
                     e.printStackTrace();
                 }
             }
@@ -239,7 +146,7 @@ public class SmsServer {
     
     }
     
-        
+
         
         
    /*
@@ -257,7 +164,7 @@ public class SmsServer {
         
         SmsServer server = new SmsServer(args.length > 0 ? args[0] : "config.txt", args.length > 1 ? args[1] : "unknown version");
 
-        
+
         // add shutdown handler to write a log entry about shutting down 
         // (this only works if the JVM exits when this application exits) 
         Runtime.getRuntime().addShutdownHook(new Thread() {

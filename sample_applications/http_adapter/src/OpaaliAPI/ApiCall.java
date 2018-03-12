@@ -1,12 +1,12 @@
 /*
  * Opaali (Telia Operator Service Platform) sample code
- * 
+ *
  * Copyright(C) 2017 Telia Company
- * 
+ *
  * Telia Operator Service Platform and Telia Opaali Portal are trademarks of Telia Company.
- * 
+ *
  * Author: jlasanen
- * 
+ *
  */
 
 
@@ -20,16 +20,16 @@ public class ApiCall {
      * making an API Call through a http request
      */
     public static String makeRequest(AccessToken access_token, Template tmpl, HashMap <String, String> vars) {
-    
+
         /*
          * possible http request results:
          *  200 - success
          *  400 - Bad Request (terminate)
          *  401 - Authentication failure (terminate)
-         *  403 - Policy Exception: 
+         *  403 - Policy Exception:
          *        - empty body: (terminate)
          *        - policy_error 3003: log the error and wait to prevent further exceeding TPS
-         *        - policy_error 3004: (terminate) 
+         *        - policy_error 3004: (terminate)
          */
 
         HttpResponse resp = null;
@@ -51,9 +51,9 @@ public class ApiCall {
                      * - null -> unrecoverable error -> terminate somehow
                      * - ""   -> recoverable error, probably TPS exceeded
                      * -"..." -> valid token, go on and retry
-                     * 
-                     * authenticate() should catch if 401 is recurring 
-                     * 
+                     *
+                     * authenticate() should catch if 401 is recurring
+                     *
                      */
                     vars.put("ACCESS_TOKEN", tokenString);
                     break;
@@ -67,11 +67,11 @@ public class ApiCall {
                     break;
             }
         } while (doRetry(retries++, resp/*, lastResp*/));
-        
+
         return processResponse(resp);
     }
 
-    
+
     /*
      * escape characters that cannot be used inside a JSON string
      */
@@ -79,7 +79,7 @@ public class ApiCall {
         StringBuilder str = new StringBuilder();
         for (int i = 0; i < s.length(); i++) {
             char c = s.charAt(i);
-            
+
             switch (c) {
                 case '\"':
                     str.append("\\\"");
@@ -120,13 +120,13 @@ public class ApiCall {
     }
 
     /*
-     * for convenience escape accented characters used in Finland 
+     * for convenience escape accented characters used in Finland
      */
     public static String escapeSweFin(String s) {
         StringBuilder str = new StringBuilder();
         for (int i = 0; i < s.length(); i++) {
             char c = s.charAt(i);
-            
+
             switch (c) {
                 case 'å':
                     str.append("\\u00E5");
@@ -154,13 +154,13 @@ public class ApiCall {
         return str.toString();
     }
 
-    
+
 
     public static class ReceiptRequest {
         String notifyURL = null;
         String notificationFormat = "JSON";
         String callbackData = null;
-        
+
         public ReceiptRequest(String notifyURL, String callbackData) {
             this.notifyURL = notifyURL;
             this.callbackData = (callbackData != null ? escapeJSON(callbackData) : null);
@@ -170,7 +170,7 @@ public class ApiCall {
             this.notifyURL = notifyURL;
             this.callbackData = null;
         }
-        
+
         /*
          * (non-Javadoc)
          * @see java.lang.Object#toString()
@@ -179,22 +179,22 @@ public class ApiCall {
             return ", \"receiptRequest\": { \"notifyURL\":\"+notifyURL+"
                     + "\", \"notificationFormat\":\"JSON\""
                     + (callbackData != null ? ", \"callbackData\":\""+callbackData+"\"}" : "}");
-                    
+
         }
     }
-    
-    
+
+
     public class ChargingInfo {
         String description = null;
         String currency = "EUR";
         String amount = null;
         String code = null;
-        
+
         public ChargingInfo(String description, float amount) {
             this.description = escapeJSON(description);
             this.amount = String.valueOf(amount);
         }
-        
+
         /*
          * (non-Javadoc)
          * @see java.lang.Object#toString()
@@ -205,7 +205,7 @@ public class ApiCall {
         }
     }
 
-    
+
     public static class DeliveryInfo {
         public final String address;
         public final int deliveryStatus;
@@ -223,22 +223,22 @@ public class ApiCall {
             this.description = description;
             this.deliveryStatusStr = deliveryStatusStr;
             if ("DeliveredToNetwork".equals(deliveryStatusStr)) {
-                deliveryStatus = DeliveredToNetwork; 
+                deliveryStatus = DeliveredToNetwork;
             }
             else if ("DeliveredToTerminal".equals(deliveryStatusStr)) {
-                deliveryStatus = DeliveredToTerminal; 
+                deliveryStatus = DeliveredToTerminal;
             }
             else if ("DeliveryUncertain".equals(deliveryStatusStr)) {
-                deliveryStatus = DeliveryUncertain; 
+                deliveryStatus = DeliveryUncertain;
             }
             else if ("DeliveryImpossible".equals(deliveryStatusStr)) {
-                deliveryStatus = DeliveryImpossible; 
+                deliveryStatus = DeliveryImpossible;
             }
             else {
                 deliveryStatus = DeliveryNotificationNotSupported;
             }
         }
-        
+
         @Override
         public String toString() {
             return "{deliveryInfo: address: "+address+", deliveryStatus: "+deliveryStatusStr+(description != null ? ", description: "+description : "")+"}";
@@ -246,7 +246,35 @@ public class ApiCall {
 
     }
 
-    
+
+    public static class Attachment {
+        public final String contentType;
+        public final Link link;
+
+        public static class Link {
+            public final String rel = "attachment";
+            public final String href;
+            //public final int size;
+
+            Link(String href){
+                this.href = href;
+            }
+        }
+
+        Attachment(String contentType, String href) {
+            this.contentType = contentType;
+            this.link = new Link(href);
+        }
+
+
+        @Override
+        public String toString() {
+            return "{attachment: {contentType: "+contentType+"link: {rel: "+link.rel+", href: "+link.href+"}";
+        }
+
+    }
+
+
     /*
      * called when authentication fails due to a temporary condition
      */
@@ -269,8 +297,8 @@ public class ApiCall {
         }
         return access_token;
     }
-    
-    
+
+
     private static boolean doRetry(int counter, HttpResponse resp /*, HttpResponse lastResp*/) {
         final int maxRetries = 4;
         switch (resp.rc) {
@@ -285,8 +313,8 @@ public class ApiCall {
             case 403:
                 // possible cause: TPS exceeded
                 // check if POL3003 error, then retry if counter < 10
-            
-                if (resp.responseBody != null) 
+
+                if (resp.responseBody != null)
                 {
                     String policyError = JSONHandler.processRequestError(resp.responseBody);
                        if (policyError != null && "POL3003".equals(policyError)) {
@@ -303,7 +331,7 @@ public class ApiCall {
                     return false;
                 }
 
-            
+
                 break;
             case 408:
                 // possible cause: unknown
@@ -325,9 +353,9 @@ public class ApiCall {
         }
         return false;
     }
-    
 
-    
+
+
 
     /*
      * called to recover from temporary exceeding TPS limit
@@ -342,13 +370,13 @@ public class ApiCall {
          }
     }
 
-    
+
     // = end of public part ===================================================
 
     /*
      * check request status,
      * return response body if successful
-     * or null if fails 
+     * or null if fails
      */
     private static String processResponse(HttpResponse resp) {
 
@@ -363,5 +391,5 @@ public class ApiCall {
     }
 
 
-    
+
 }

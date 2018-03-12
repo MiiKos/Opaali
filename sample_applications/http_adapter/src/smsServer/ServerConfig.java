@@ -44,6 +44,8 @@ public class ServerConfig {
     public static final String CONFIG_LOG_ROTATE = "log_rotate";
     public static final String CONFIG_LOG_MASK = "log_mask";
     public static final String CONFIG_THREADPOOLSIZE = "threadPoolSize";
+    public static final String CONFIG_DEFAULTURL = "defaultUrl";
+    public static final String CONFIG_MAPPINGFILE = "mappingFile";
     
     
     

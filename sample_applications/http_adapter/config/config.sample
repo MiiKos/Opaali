@@ -18,11 +18,27 @@ log_append=1
 # log_rotate - insert current date before last dot in filename: 0=no 1=yes
 #log_rotate=1
 
+
+# by default the http server is single threaded
+# which may lead to lockups especially if you
+# have more than one service configured
+#
+# you probably want to configure multiple threads
+# using a thread pool
+#
 # set the threadpool size for http-server (optional, default is 1)
-#threadPoolSize=10
+threadPoolSize=10
 
 
 # service sections [name:type]            
+#
+# service will run at the /name URL path
+# if name is empty the service will run at root path
+# but notice that all incoming requests will then match
+# this service and you cannot have any other services
+#
+# service type "cgw" is for sending MT messages using
+# Content Gateway type of http request
 [send:cgw]
 # character set for CGW API side
 cgwCharset=ISO-8859-1
@@ -38,5 +54,28 @@ applicationPassword=1%AMCC?u
 # -length is optional, if omitted applies mask until the end/start of value
 #log_mask=(to,-2,4),(msg,15)
             
+# service type "receive" is for receiving callback notifications
+# from Opaali for received MO messages
+# (this service is available since v0.2.0)
+#[opaalinotif:receive]
+##opaaliCharset=UTF-8
+#
+# see above for log_mask usage
+##log_mask=(msisdn,-2,4),(msg,15)
+
+# incoming MO message notifications will be sent
+# to a configurable target service using
+# Content Gateway style HTTP GET requests
+# using template URLs with macros filled in
+# (notice that NOT all of the CGW macros are supported)
+#
+# a default URL is called when no there is no
+# other matching configuration
+#defaultUrl=http://localhost:80/?msisdn=$(M)&shortnumber=$(R)&keyword=$(1)&msg=$(*)
+#
+# a separate mapping file can be used for choosing the target
+# based on keyword and/or short code
+#mappingFile=mappings.txt
+#
            
 # end of config"

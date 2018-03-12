@@ -123,6 +123,11 @@ public class SmsServer {
                                 startServer = true;
                                 Log.logInfo("CGW HTTP API started at port "+port+", path /"+serviceName);
                             }
+                            else if (ServerConfig.SERVICE_TYPE_RECEIVE.equalsIgnoreCase(serviceType)) {
+                                server.createContext("/"+serviceName, new OpaaliApiHandler(svc));
+                                startServer = true;
+                                Log.logInfo("OPAALI HTTP CALLBACK API started at port "+port+", path /"+serviceName);
+                            }
                             else {
                                 Log.logWarning("unknown service ["+serviceName+":"+serviceType+"] ignored");
                             }

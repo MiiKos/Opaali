@@ -1,0 +1,36 @@
+# This is a mapping configuration file from
+# - service_address and keyword to a target URL template
+# - keyword to a target URL template
+#
+# The mappings are specified as lines containing
+# SERVICE_KEYWORD=APPLICATION_URI
+# 
+# a default mapping is specified using special keyword @
+# (you can only have one default mapping for a set of service addresses)
+# @=APPLICATION_URI
+#
+# mapping lines at the beginning of this file are applied to any service address
+#
+# to specify service address specific mappings you insert any number of service address lines
+# in front of the mapping lines, like this:
+# [SERVICE_ADDRESS]
+# SERVICE_KEYWORD=APPLICATION_URI
+#
+# mapping lines are applied to the preceding service address line or lines until the next 
+# batch of service address lines
+#
+# service address specific mappings take precedence over service address independent mappings
+#
+# the following mappings are applied to all service addresses 
+testi=http://localhost:8080/$(msisdn)?msg=$(msg)
+
+
+# all the rest of the mappings are tied to one or more service addresses
+[12345]
+INFO=http://localhost:28077/tfolsms/sms.do?sender=$(M)&recp=$(R)&msg=$(MSG)
+TILAA=http://localhost:28077/tfolsms/sms.do?sender=$(M)&recp=$(R)&msg=$(MSG)&tilaa=yes
+
+[1234]
+[54321]
+@=http://localhost/testi/$(R)/$(M)
+

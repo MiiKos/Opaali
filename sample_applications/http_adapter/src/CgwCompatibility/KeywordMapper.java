@@ -62,6 +62,9 @@ public class KeywordMapper {
         else if (keyMap != null) {
             return mapKeyword(keyword);
         }
+        else if (defaultUrl != null) {
+            return defaultUrl;
+        }
         return null;
     }
 
@@ -142,6 +145,11 @@ public class KeywordMapper {
     private static String fillTemplate(String template, CgwMessage message) {
         String target = "";
         int pos = 0;
+
+        if (template == null || message == null) {
+            // fail fast
+            return null;
+        }
 
         // initialize matchers
         Matcher m[] = new Matcher[PATTERN_COUNT];

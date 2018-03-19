@@ -126,7 +126,7 @@ public class HttpRequest {
             }
             
             // get response body (if one exists)
-            if (conn.getContentLengthLong() > 0) {
+            if (conn.getContentLengthLong() != 0) {
                 String inputLine = null;
                 StringBuilder respBody = new StringBuilder();
                 BufferedReader in = new BufferedReader(new InputStreamReader((rc < 400 ? conn.getInputStream() : conn.getErrorStream()),charSet));

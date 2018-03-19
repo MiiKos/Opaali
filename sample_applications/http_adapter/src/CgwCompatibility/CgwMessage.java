@@ -122,7 +122,8 @@ public class CgwMessage {
      */
     private static String[] parseWords(String msg) {
         // split into words at space or line-delimiter
-        return msg.split(" |\\r\\n");
+        String[] words = msg.split(" |\\r\\n");
+        return (words != null ? words : new String[]{msg});
     }
 
 

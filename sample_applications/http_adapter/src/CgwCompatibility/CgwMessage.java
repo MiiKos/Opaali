@@ -1,4 +1,15 @@
-package CgwCompatibility;
+/*
+ * Opaali (Telia Operator Service Platform) sample code
+ *
+ * Copyright(C) 2018 Telia Company
+ *
+ * Telia Operator Service Platform and Telia Opaali Portal are trademarks of Telia Company.
+ *
+ * Author: jlasanen
+ *
+ */
+
+ package CgwCompatibility;
 
 import OpaaliAPI.InboundMMSMessage;
 import OpaaliAPI.InboundMessage;

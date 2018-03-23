@@ -17,23 +17,21 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URLEncoder;
 import java.util.HashMap;
 
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
+import CgwCompatibility.CgwHttpRequest;
 import CgwCompatibility.CgwMessage;
 import CgwCompatibility.KeywordMapper;
 import OpaaliAPI.Config;
-import OpaaliAPI.HttpRequest;
 import OpaaliAPI.HttpResponse;
 import OpaaliAPI.InboundMessage;
 import OpaaliAPI.Log;
 import OpaaliAPI.Message;
-import OpaaliAPI.Template;
 
 
 /*
@@ -47,6 +45,7 @@ public class OpaaliApiHandler implements HttpHandler {
 
     OpaaliApiHandler(ServiceConfig sc) {
 
+        sc.setValidity(true);   // default
         this.sc = sc;
         this.serviceName = sc.getServiceName();
         // mappingFile contains mappings from keywords to target URLs
@@ -79,9 +78,13 @@ public class OpaaliApiHandler implements HttpHandler {
         }
         logRequest = new RequestLogger(logMasks);
 
+        nowait = (sc.getConfigEntryInt(ServerConfig.CONFIG_NOWAIT) != 0);
+
+        defaultReplyUrl = sc.getConfigEntry(ServerConfig.CONFIG_DEFAULTREPLYURL);
+        //qSvc = QueueServiceHandler.create();
+
         if (isValid) {
             Config.setServiceConfig(serviceName, sc);
-            sc.setValidity(true);
         }
         else {
             sc.setValidity(false);
@@ -100,7 +103,9 @@ public class OpaaliApiHandler implements HttpHandler {
     KeywordMapper keyMapper = null;
     Mapping mapping = null;
     private boolean isValid = true;
-    private boolean delayedProcessing = false;
+    private boolean nowait = false;
+    private QueueService qSvc = null;
+    private String defaultReplyUrl = null;
 
     @Override
     public void handle(HttpExchange x) throws IOException {
@@ -179,6 +184,7 @@ public class OpaaliApiHandler implements HttpHandler {
 
         int rc = OPAALI_RC_OK;    // default success response
         HttpResponse resp = null;
+        boolean delayedProcessing = false;
 
         // create Opaali style message from JSON data
         InboundMessage msg = OpaaliAPI.JSONHandler.processInboundMessageNotification(body);
@@ -213,55 +219,72 @@ public class OpaaliApiHandler implements HttpHandler {
                 String templateUrl = keyMapper.mapKeyword(message.getTo(), message.getKeyword());
 
                 // fill templateUrl from message
-                String targetUrl = keyMapper.tmplExpand(templateUrl, message);
+                String targetUrl = KeywordMapper.tmplExpand(templateUrl, message);
+
+
+                String replyUrl = null;
+                if (ServerConfig.SERVICE_TYPE_QR.equalsIgnoreCase(sc.getServiceType())) {
+                    // fill templateUrl from message
+                    replyUrl = KeywordMapper.tmplExpand(defaultReplyUrl, message);
+                }
+
+                // don't wait for backend http request to complete if the service has
+                // nowait enabled in config and the url ends in "nowait"
+                delayedProcessing = nowait && path.endsWith(ServerConfig.CONFIG_NOWAIT);
 
                 if (delayedProcessing) {
                     // submit the http request into a queue to be processed later
                     // and immediately return success to the caller
-                    // (a.k.a. tell a little white lie...)
-                    // TODO: to be implemented
-                    // submitToQ(targetUrl);
+                    // (tell a little white lie...we don't know if the data is actually delivered)
+                    // in case submit to queue failed, just turn delayedProcessing off and fall through
+                    if (delayedProcessing = QueueServiceHandler.get().submit(null, msg.getMessageId(), targetUrl, replyUrl)) {
+                        logRequest.log("Queued processing for request "+targetUrl+"with id "+msg.getMessageId(), -1, -1, 0);
+                    }
                     rc = OPAALI_RC_OK;
                 }
-                else {
+                if (!delayedProcessing) {
                     // make the actual CGW style http request now
 
-                    String[] MOTemplate = {
-                        // API request for delivering MO messages
-                        "GET ${TARGET_URL} HTTP/1.1",
-                        "Accept: */*" ,
-                        "Character-set: iso8859-1",
-                        "User-Agent: CGW Provider Server 4.0 http_adapter",
-                        "Host: ${TARGET_HOST}",
-                        ""
-                    };
+                    long startTime = RequestLogger.getTimeNow();
 
-                    // get host for host - http header
-                    String targetHost = extractHost(targetUrl);
+                    resp = CgwHttpRequest.get(targetUrl);
 
-                    // make the actual HTTP request, but first, fill in the template
-                    Template tmpl = new Template(MOTemplate);
+                    long endTime = RequestLogger.getTimeNow();
 
-                    HashMap <String, String> vars = new HashMap<String, String>();
-                    vars.put("TARGET_URL", targetUrl);
-                    vars.put("TARGET_HOST", targetHost);
-
-                    long startTime = logRequest.getTimeNow();
-
-                    resp = HttpRequest.makeRequest(tmpl.expand(vars).toStrings());
-
-                    long endTime = logRequest.getTimeNow();
-                    logRequest.log(targetUrl, resp.rc, -1, endTime-startTime);
-
-                    if (resp.responseBody != null && resp.responseBody.length() > 0) {
-                        /*
-                         * TODO: if successful response contained a body, return that content
-                         * by generating a separate MT send request after returning from this request
-                         * (to mimic CGW QR functionality)
-                         */
-
+                    if (resp == null) {
+                        logRequest.log("Failed to make http request to"+targetUrl, -1, -1, endTime-startTime);
                     }
+                    else {
+                        logRequest.log(targetUrl, resp.rc, -1, endTime-startTime);
 
+                        if (resp.responseBody != null && resp.responseBody.length() > 0) {
+                            /*
+                             * if successful response contained a body, return that content
+                             * by generating a separate MT send request after returning from this request
+                             * (to mimic CGW QR functionality)
+                             */
+                            if (ServerConfig.SERVICE_TYPE_QR.equalsIgnoreCase(sc.getServiceType())) {
+                                /*
+                                 * expand replyUrl a second time to fill in the message (if not already done),
+                                 * this relies on the replyUrl containing the macro $(MSG)
+                                 * which relies the original replyUrl having contained $$(MSG)
+                                 * ( $$ is interpreted as escaped $ )
+                                 */
+                                // the responseBody must be urlencoded to convert blanks tp '+'
+                                String msgStr = URLEncoder.encode(resp.responseBody);;
+                                replyUrl = KeywordMapper.tmplExpand(replyUrl, new CgwMessage(null,null,null,null,msgStr));
+
+                                if (QueueServiceHandler.get().submit(null, msg.getMessageId(), replyUrl, null)) {
+                                    // submitted to queue
+                                    logRequest.log("Queued processing for response to "+targetUrl, -1, -1, 0);}
+                                else {
+                                    // failed to submit, data will be lost!
+                                    logRequest.log("Failed to queue response for request "+targetUrl+", data will be lost!", -1, -1, 0);
+                                }
+                            }
+                            rc = OPAALI_RC_OK;    // at least the request was successful, if reply was not...
+                        }
+                    }
                 }
 
             }
@@ -285,11 +308,9 @@ public class OpaaliApiHandler implements HttpHandler {
                 default:
                     break;
                 }
-            }
-            else {
+        } else if (!delayedProcessing) {
             rc = OPAALI_RC_PANIC;
         }
-
 
         /*
          * request return code, response headers and body
@@ -309,21 +330,6 @@ public class OpaaliApiHandler implements HttpHandler {
         resp = new HttpResponse(rc, responseHeaders, responseBody);
 
         return resp;
-    }
-
-
-    /*
-     * extract host part from URL
-     */
-    private static String extractHost(String targetUrl) {
-        try {
-            URL url = new URL(targetUrl);
-            return url.getHost();
-        }
-        catch (MalformedURLException e) {
-
-        }
-        return null;
     }
 
 

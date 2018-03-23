@@ -43,6 +43,7 @@ public class SmsServer {
 
     private static FileLogger fl = null;
     private static HttpServer httpServer = null;
+    private static QueueService qSvc = null;
     private static SmsServer smsServer = null;
 
 
@@ -136,6 +137,27 @@ public class SmsServer {
                                     Log.logError("OPAALI HTTP CALLBACK API failed to start!");
                                 }
                             }
+                            else if (ServerConfig.SERVICE_TYPE_QR.equalsIgnoreCase(serviceType)) {
+                                httpServer.createContext("/"+serviceName, new OpaaliApiHandler(svc));
+                                if (svc.isValid()) {
+                                    startServer = true;
+                                    Log.logInfo("OPAALI QR HTTP CALLBACK API started at port "+port+", path /"+serviceName);
+                                }
+                                else {
+                                    httpServer.removeContext("/"+serviceName);
+                                    Log.logError("OPAALI QR HTTP CALLBACK API failed to start!");
+                                }
+                            }
+                            else if (ServerConfig.SERVICE_TYPE_INTERNALQ.equalsIgnoreCase(serviceType)) {
+                                qSvc = new QueueServiceHandler(svc);
+                                if (qSvc != null && svc.isValid()) {
+                                    startServer = true;
+                                    Log.logInfo("INTERNAL QUEUE SERVICE "+serviceName+" started");
+                                }
+                                else {
+                                    Log.logError("INTERNAL QUEUE SERVICE "+serviceName+" failed to start!");
+                                }
+                            }
                             else {
                                 Log.logWarning("unknown service ["+serviceName+":"+serviceType+"] ignored");
                             }
@@ -144,6 +166,8 @@ public class SmsServer {
                     if (startServer) {
                         httpServer.setExecutor(executor);
                         httpServer.start();
+
+                        QueueServiceHandler.create().loop();    // this will block until shutdown!
                     }
 
                 } catch (IOException e) {
@@ -158,8 +182,6 @@ public class SmsServer {
         }
 
     }
-
-
 
 
    /*
@@ -188,6 +210,10 @@ public class SmsServer {
                 if (httpServer != null) {
                     Log.logInfo("shutting down http server");
                     httpServer.stop(5);
+                }
+                if (qSvc != null) {
+                    Log.logInfo("shutting down queue service");
+                    qSvc.shutdown();
                 }
                 Log.logInfo("----------------");
             }

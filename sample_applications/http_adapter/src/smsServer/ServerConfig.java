@@ -28,6 +28,8 @@ public class ServerConfig {
     public static final String SERVICE_TYPE_SEND = "cgw";
     public static final String SERVICE_TYPE_DLR = "dlr";
     public static final String SERVICE_TYPE_RECEIVE = "receive";
+    public static final String SERVICE_TYPE_QR = "qr";
+    public static final String SERVICE_TYPE_INTERNALQ = "queue";
     public static final String SERVICE_DEFAULTCONFIG = null;
 
     // known config parameters
@@ -45,7 +47,10 @@ public class ServerConfig {
     public static final String CONFIG_LOG_MASK = "log_mask";
     public static final String CONFIG_THREADPOOLSIZE = "threadPoolSize";
     public static final String CONFIG_DEFAULTURL = "defaultUrl";
+    public static final String CONFIG_DEFAULTREPLYURL = "defaultReplyUrl";
     public static final String CONFIG_MAPPINGFILE = "mappingFile";
+    public static final String CONFIG_NOWAIT = "nowait";
+    public static final String CONFIG_QSIZE = "queueSize";
     
     
     

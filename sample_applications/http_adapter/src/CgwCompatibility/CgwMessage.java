@@ -31,6 +31,22 @@ public class CgwMessage {
 
 
     /*
+     * create a CgwMessage from parameters
+     */
+    public CgwMessage(String to,
+                      String from,
+                      String date,
+                      String udh,
+                      String msg) {
+        this.to = removeTelPrefix(to);
+        this.from = removeTelPrefix(from);
+        this.date = date;
+        this.udh = udh;
+        this.msg = msg;
+    }
+
+
+    /*
      * create a CgwMessage from an InboundMessage
      */
     public CgwMessage(InboundMessage msg) {
@@ -64,23 +80,23 @@ public class CgwMessage {
 
 
     public String getMsg() {
-        return msg;
+        return msg != null ? msg : "";
     }
 
     public String getUdh() {
-        return (udh != null) ? udh : "";
+        return udh != null ? udh : "";
     }
 
     public String getFrom() {
-        return from;
+        return from != null ? from : "";
     }
 
     public String getTo() {
-        return to;
+        return to != null ? to : "";
     }
 
     public String getDate() {
-        return date;
+        return date != null ? date : "";
     }
 
     public String getKeyword() {
@@ -123,7 +139,7 @@ public class CgwMessage {
     private static String[] parseWords(String msg) {
         // split into words at space or line-delimiter
         String[] words = msg.split(" |\\r\\n");
-        return (words != null ? words : new String[]{msg});
+        return words != null ? words : new String[]{msg};
     }
 
 
@@ -135,8 +151,7 @@ public class CgwMessage {
      * convert international numbers to required format
      */
     private String removeTelPrefix(String msisdn) {
-        return (msisdn.startsWith("tel:") ? msisdn.substring("tel:".length()) : msisdn);
+        return (msisdn != null && msisdn.startsWith("tel:")) ? msisdn.substring("tel:".length()) : msisdn;
     }
-
 
 }

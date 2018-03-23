@@ -28,7 +28,7 @@ public class RequestLogger {
     /*
      * returns current time in ms for use in timing
      */
-    public long getTimeNow() {
+    public static long getTimeNow() {
         return java.util.Calendar.getInstance().getTimeInMillis();
     }
 
@@ -50,14 +50,16 @@ public class RequestLogger {
             sb.append(ms);
             sb.append("ms");
         }
-        sb.append(':');
-        sb.append(respCode);
-        if (respCode == 200)
-            sb.append(" OK");
-        else if (respCode == 204)
-            sb.append(" No Content");
-        else if (respCode == 401)
-            sb.append(" Unauthorized");
+        if (respCode >= 0) {
+            sb.append(':');
+            sb.append(respCode);
+            if (respCode == 200)
+                sb.append(" OK");
+            else if (respCode == 204)
+                sb.append(" No Content");
+            else if (respCode == 401)
+                sb.append(" Unauthorized");
+        }
         sb.append(')');
         Log.logInfo(sb.toString());
     }

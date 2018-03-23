@@ -17,10 +17,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLDecoder;
 import java.util.HashMap;
 
 import com.sun.net.httpserver.Headers;
@@ -83,6 +81,7 @@ public class OpaaliApiHandler implements HttpHandler {
 
         if (isValid) {
             Config.setServiceConfig(serviceName, sc);
+            sc.setValidity(true);
         }
         else {
             sc.setValidity(false);
@@ -106,7 +105,7 @@ public class OpaaliApiHandler implements HttpHandler {
     @Override
     public void handle(HttpExchange x) throws IOException {
 
-        long startTime = logRequest.getTimeNow();
+        long startTime = RequestLogger.getTimeNow();
 
         // this triggers log rotation after midnight, if enabled
         SmsServer.checkLogRotation();
@@ -160,7 +159,7 @@ public class OpaaliApiHandler implements HttpHandler {
             Log.logWarning("failed to send response headers to client");
         }
 
-        long endTime = logRequest.getTimeNow();
+        long endTime = RequestLogger.getTimeNow();
         logRequest.log(x.getRequestURI().toString(), resp.rc, x.getLocalAddress().getPort(), endTime-startTime);
     }
 
@@ -189,7 +188,7 @@ public class OpaaliApiHandler implements HttpHandler {
             rc = OPAALI_RC_PANIC;
             resp = null;
         }
-        else if (msg != null) {
+        else {
             // do message type specific processing
             if ((msg.getMessageType() & Message.SMS_TEXT_MESSAGE) != 0) {
                 // text message
@@ -227,7 +226,7 @@ public class OpaaliApiHandler implements HttpHandler {
                 else {
                     // make the actual CGW style http request now
 
-                String[] MOTemplate = {
+                    String[] MOTemplate = {
                         // API request for delivering MO messages
                         "GET ${TARGET_URL} HTTP/1.1",
                         "Accept: */*" ,
@@ -268,25 +267,24 @@ public class OpaaliApiHandler implements HttpHandler {
             }
         }
 
-                    //process response
+        //process response
         if (resp != null) {
-
-                    rc = resp.rc;
-                    switch (resp.rc) {
-                    case 200: // OK
-                rc = OPAALI_RC_OK;
-                        break;
-                    case 400: // BAD REQUEST
-                        break;
-                    case 401: // UNAUTHORIZED
-                        // authentication is not supported by CGW Provider Server
-                        break;
-                    case 403: // FORBIDDEN
-                        // not supported
-                        break;
-                    default:
-                        break;
-                    }
+            rc = resp.rc;
+            switch (resp.rc) {
+                case 200: // OK
+                    rc = OPAALI_RC_OK;
+                    break;
+                case 400: // BAD REQUEST
+                    break;
+                case 401: // UNAUTHORIZED
+                    // authentication is not supported by CGW Provider Server
+                    break;
+                case 403: // FORBIDDEN
+                    // not supported
+                    break;
+                default:
+                    break;
+                }
             }
             else {
             rc = OPAALI_RC_PANIC;

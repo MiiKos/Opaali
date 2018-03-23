@@ -84,7 +84,7 @@ public class KeywordMapper {
     /*
      * expand macros in URL template with given values
      */
-    public String tmplExpand(String templateUrl, CgwMessage message) {
+    public static String tmplExpand(String templateUrl, CgwMessage message) {
         return fillTemplate(templateUrl, message);
     }
 
@@ -145,6 +145,7 @@ public class KeywordMapper {
     private static String fillTemplate(String template, CgwMessage message) {
         String target = "";
         int pos = 0;
+        int word = 0;
 
         if (template == null || message == null) {
             // fail fast
@@ -169,62 +170,88 @@ public class KeywordMapper {
             if (c == '$' && (lk == '(' || lk == '[')) {
                 // potential start of variable
                 boolean found = false;
-                /*
-                 * $\(M\)|$\(MSISDN\)|$\(FROM\) $\(R\)|$\(RECIPIENT\)|$(\TO\)
-                 * $(\d+) $(\*) $\(\*(.)\) $\[\] $\[DEF(.+)\] $\[\*\] $\[\*(.)\]
-                 * $\(.*\)
-                 */
-                for (int i = 0; i < p.length; i++) {
-                    if (m[i].find(pos)) {
-                        target += template.substring(pos, m[i].start());
-                        if (i == PATTERN_NTH_WORD_INDEX) {
-                            int d = Integer.parseInt(m[i].group(1));
-                            target += message.getWord(d);
-                        } else if (i == PATTERN_ALL_WORDS_INDEX) {
-                            target += message.getWord(1);
-                            for (int j = 2; j <= message.getWordCount(); j++) {
-                                target += ('+' + message.getWord(j));
-                            }
-                        } else if (i == PATTERN_REST_OF_WORDS_INDEX) {
-                            for (int j = 2; j <= message.getWordCount(); j++) {
-                                target += ('+' + message.getWord(j));
-                            }
-                        } else if (i == PATTERN_VAR_INDEX) {
-                            // assume a variable
-                            String ds = m[i].group(1);
 
-                            if (M_PARAM.equals(ds)
-                                || MSISDN_PARAM.equals(ds)
-                                || FROM_PARAM.equals(ds)) {
-                                target += message.getFrom();
-                            } else if (R_PARAM.equals(ds)
-                                || RECIPIENT_PARAM.equals(ds)
-                                || TO_PARAM.equals(ds)) {
-                                target += message.getTo();
-                            } else if (UDH_PARAM.equals(ds)) {
-                                target += message.getUdh();
-                            } else if (MSG_PARAM.equals(ds)) {
-                                target += message.getMsg();
-                            } else {
-                                // ignore unknown param
+                if (lk == '[' && pos + 2 < template.length() && template.charAt(pos+2) == ']') {
+                    // treat $[] as a special case, same as $(number) where number increases
+                    target += message.getWord(++word);
+                    // skip to end of variable
+                    pos += 3;
+                    if (pos < template.length()) {
+                        c = template.charAt(pos);
+                    }
+                    found = true;
+                }
+                else {
+
+                    /*
+                     * $\(M\)|$\(MSISDN\)|$\(FROM\) $\(R\)|$\(RECIPIENT\)|$(\TO\)
+                     * $(\d+) $(\*) $\(\*(.)\) $\[\] $\[DEF(.+)\] $\[\*\] $\[\*(.)\]
+                     * $\(.*\)
+                     */
+                    for (int i = 0; i < p.length; i++) {
+                        if (m[i].find(pos)) {
+                            target += template.substring(pos, m[i].start());
+                            if (i == PATTERN_NTH_WORD_INDEX) {
+                                int d = Integer.parseInt(m[i].group(1));
+                                target += message.getWord(d);
+                            } else if (i == PATTERN_ALL_WORDS_INDEX) {
+                                target += message.getWord(1);
+                                for (int j = 2; j <= message.getWordCount(); j++) {
+                                    target += ('+' + message.getWord(j));
+                                }
+                            } else if (i == PATTERN_REST_OF_WORDS_INDEX) {
+                                for (int j = 2; j <= message.getWordCount(); j++) {
+                                    target += ('+' + message.getWord(j));
+                                }
+                            } else if (i == PATTERN_VAR_INDEX) {
+                                // assume a variable
+                                String ds = m[i].group(1);
+
+                                if (M_PARAM.equals(ds)
+                                    || MSISDN_PARAM.equals(ds)
+                                    || FROM_PARAM.equals(ds)) {
+                                    target += message.getFrom();
+                                } else if (R_PARAM.equals(ds)
+                                    || RECIPIENT_PARAM.equals(ds)
+                                    || TO_PARAM.equals(ds)) {
+                                    target += message.getTo();
+                                } else if (UDH_PARAM.equals(ds)) {
+                                    target += message.getUdh();
+                                } else if (MSG_PARAM.equals(ds)) {
+                                    target += message.getMsg();
+                                } else {
+                                    // ignore unknown param
+                                }
                             }
+                            // skip to end of variable
+                            pos = m[i].end();
+                            if (pos < template.length()) {
+                                c = template.charAt(pos);
+                            }
+                            found = true;
+                            break;
                         }
-                        // skip to end of variable
-                        pos = m[i].end();
-                        if (pos < template.length()) {
-                            c = template.charAt(pos);
-                        }
-                        found = true;
-                        break;
+                    }
+                    if (!found) {
+                        // next char
+                        //target += c;
+                        c = lk;
+                        pos++;
                     }
                 }
-                if (!found) {
-                    // next char
-                    target += c;
-                    c = lk;
-                    pos++;
-                }
-            } else {
+            }
+            else if (c == '$' && lk == '$' ) {
+                // treat this as escape
+                target += c;
+                c = '\0';
+                pos++;
+            }
+            else if (c == '\0') {
+                // skip nul
+                c = lk;
+                pos++;
+            }
+            else {
                 // next char
                 target += c;
                 c = lk;

@@ -124,6 +124,10 @@ public class InboundMessage extends Message {
         return msg;
     }
 
+    public String getMessageId() {
+        return messageId;
+    }
+
     //= end of public part ====================================================
 
     protected InboundMessage() {

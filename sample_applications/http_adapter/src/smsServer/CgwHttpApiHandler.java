@@ -1,12 +1,12 @@
 /*
  * Opaali (Telia Operator Service Platform) sample code
- * 
+ *
  * Copyright(C) 2017 Telia Company
- * 
+ *
  * Telia Operator Service Platform and Telia Opaali Portal are trademarks of Telia Company.
- * 
+ *
  * Author: jlasanen
- * 
+ *
  */
 
 
@@ -41,12 +41,12 @@ import OpaaliAPI.ApiCall.DeliveryInfo;
  * handler for CGW style HTTP requests
  */
 public class CgwHttpApiHandler implements HttpHandler {
-    
+
     private final int CGW_RC_OK = 200;
     private final int CGW_RC_FAIL = 401;
 
     CgwHttpApiHandler(ServiceConfig sc) {
-        
+
         this.sc = sc;
         this.serviceName = sc.getServiceName();
         username = sc.getConfigEntry(ServerConfig.CONFIG_USERNAME);
@@ -63,7 +63,7 @@ public class CgwHttpApiHandler implements HttpHandler {
         }
         logRequest = new RequestLogger(logMasks);
         Config.setServiceConfig(serviceName, sc);
-        
+
     }
 
     String serviceName = null;
@@ -74,27 +74,27 @@ public class CgwHttpApiHandler implements HttpHandler {
     String cgwCharset = null;
     RequestLogger logRequest = null;
     boolean failureMode = false;         // true after an unrecoverable error
-    
+
     @Override
     public void handle(HttpExchange x) throws IOException {
 
-        long startTime = logRequest.getTimeNow();
+        long startTime = RequestLogger.getTimeNow();
 
         // this triggers log rotation after midnight, if enabled
         SmsServer.checkLogRotation();
 
         Log.logDebug("http request: " + x.getRequestURI());
-        
+
         String queryString = x.getRequestURI().getRawQuery();
-        
+
         QueryString params = ((queryString != null && queryString.length() > 0) ? new QueryString(queryString) : null);
 
         //Log.logDebug(params.toString());
 
         HttpResponse resp = translateCGW2OpaaliRequest(params);
-        
+
         Log.logDebug("CGWHandler response: HTTP " + resp.rc + ": " + resp.responseBody);
-        
+
         Headers responseHeaders = x.getResponseHeaders();
         for (String key: resp.headers.keySet()) {
             responseHeaders.set(key, resp.headers.get(key));
@@ -105,7 +105,7 @@ public class CgwHttpApiHandler implements HttpHandler {
         os.write(resp.responseBody.getBytes());
         os.close();
 
-        long endTime = logRequest.getTimeNow();
+        long endTime = RequestLogger.getTimeNow();
         logRequest.log(x.getRequestURI().toString(), resp.rc, x.getLocalAddress().getPort(), endTime-startTime);
     }
 
@@ -115,19 +115,19 @@ public class CgwHttpApiHandler implements HttpHandler {
 
     //private HashMap<String, List<String>> parameters = null;
 
-    
+
     /*
      * translate a CGW style HTTP request into an OpaaliAPI request
      */
     private HttpResponse translateCGW2OpaaliRequest(QueryString params) {
-        
-       
+
+
         /*
          * All known CGW style HTTP request parameters,
          * not all will be implemented.
-         * 
+         *
          * Parameters in brackets are optional.
-         * 
+         *
          * From
          * To
          * Msg
@@ -140,9 +140,9 @@ public class CgwHttpApiHandler implements HttpHandler {
          * [smart]
          * [charge]
          * [info]
-         *  
+         *
          */
-        
+
         /*
          * request return code, response headers and body
          */
@@ -224,7 +224,7 @@ public class CgwHttpApiHandler implements HttpHandler {
                     String vpStr = params.getParam("vp");
                     try {
                         vp = Integer.parseInt(vpStr);
-                    } 
+                    }
                     catch (Exception e) {
                         Log.logWarning("invalid value for parameter vp="+vpStr+" ignored!");
                     }
@@ -235,9 +235,9 @@ public class CgwHttpApiHandler implements HttpHandler {
 
                     if (params.has("validateonly")) {
                         // validate request syntax without actually making the request to OpaaliAPI
-                         rc = CGW_RC_OK;
-                         responseBody = "<html><head><title>Send SMS parameters validated</title></head><body><h2>Send SMS parameters validated</h2>No actual message sent.<br></body></html>";
-                         Log.logInfo("validating request parameters without making an actual API request");
+                        rc = CGW_RC_OK;
+                        responseBody = "<html><head><title>Send SMS parameters validated</title></head><body><h2>Send SMS parameters validated</h2>No actual message sent.<br></body></html>";
+                        Log.logInfo("validating request parameters without making an actual API request");
                     }
                     else {
 
@@ -322,7 +322,7 @@ public class CgwHttpApiHandler implements HttpHandler {
                                                                                  senderName,
                                                                                  null, //no receiptRequest
                                                                                  null, //no clientCorrelator
-                                                                                 null, //no chargingInfo, 
+                                                                                 null, //no chargingInfo,
                                                                                  message);    // charset?
 
                         Log.logDebug("resourceURL="+resourceURL);
@@ -369,7 +369,7 @@ public class CgwHttpApiHandler implements HttpHandler {
             }
         }
 
-        // ready to return response        
+        // ready to return response
         HttpResponse resp = new HttpResponse(rc, responseHeaders, responseBody);
 
         return resp;
@@ -380,14 +380,14 @@ public class CgwHttpApiHandler implements HttpHandler {
      * convert international numbers to required format
      */
     private String addTelPrefix(String msisdn) {
-        
+
         try {
             msisdn = URLDecoder.decode(msisdn, cgwCharset);
         } catch (UnsupportedEncodingException e) {
             Log.logWarning("CGW:failed to URL decode using "+cgwCharset);
             msisdn = URLDecoder.decode(msisdn);
-        }     
-        
+        }
+
         return (msisdn.startsWith("+") ? "tel:"+msisdn : msisdn);
     }
 

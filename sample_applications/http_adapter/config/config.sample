@@ -77,5 +77,47 @@ applicationPassword=1%AMCC?u
 # based on keyword and/or short code
 #mappingFile=mappings.txt
 #
+#
+# allow caller to request actual processing to be queued for later processing: 0=no, 1=yes
+# this is done by appending /nowait to the request URL
+# this may be needed if the backend service cannot process requests fast enough
+# if the queue is full, we fall back to normal processing and take the risk of timing out
+# notice that if the queued processing fails or http server crashes the data may be lost
+#nowait=0
+
+
+# service type "qr" is a variant of "receive" service where the response body (if there is one) 
+# is returned to the caller in a separate, queued MT request to mimic the functionality of
+# CGW QR services
+# (this service is available since v0.3.0)
+#[opaaliqr:qr]
+# see above for log_mask usage
+##log_mask=(msisdn,-2,4),(msg,15)
+#
+# see above for defaultUrl and mappingFile usage
+#defaultUrl=http://localhost:80/?msisdn=$(M)&shortnumber=$(R)&keyword=$(1)&msg=$(*)
+#mappingFile=mappings.txt
+#
+# see above for nowait usage
+# this affects only the MO notification processing, the MT response is always queued as it requires
+# a separate Opaali API call
+#nowait=0
+#
+# defaultReplyUrl is used to specify how the MT message for a Query Reply is sent,
+# this can be the "cgw" service from the top of this configuration file
+# notice how the $(MSG) macro is escaped by doubling the $,
+# here the macros are expanded in two passes, once when creating the queued request
+# (for sender/recipient) and again when the message content is available
+#defaultReplyUrl=http://localhost:8081/send?to=$(M)&from=$(R)&msg=$$(MSG)
+
+
+# an internal queue is automatically generated so it is not necessary to list here,
+# unless you want to configure a log_mask or need to change the queue size
+# even if more than one queue is configured in this file only one will be created
+# (...and you have to guess which one of them)
+#[internalq:queue]
+#queueSize=20
+#log_mask=(to,-2,4),(msg,15)
+
            
 # end of config"

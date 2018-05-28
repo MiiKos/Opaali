@@ -145,7 +145,7 @@ public class KeywordMapper {
     private static String fillTemplate(String template, CgwMessage message) {
         String target = "";
         int pos = 0;
-        int word = 0;
+        int word = 1;
 
         if (template == null || message == null) {
             // fail fast
@@ -181,6 +181,20 @@ public class KeywordMapper {
                     }
                     found = true;
                 }
+                else if (lk == '[' && pos + 2 < template.length() && template.toUpperCase().startsWith("DEF:", pos+2)) {
+                    int end = template.indexOf(']', pos+2);
+                    String text = (end > pos+2+4 ? template.substring(pos+6, end) : "");
+                    // treat $[DEF:text] as a special case, same as $(number) where number increases 
+                    // (and insert text if macro expands to empty)
+                    String w = message.getWord(++word);
+                    target += (w.length() > 0 ? w : text);
+                    // skip to end of variable
+                    pos = end+1;
+                    if (pos < template.length()) {
+                        c = template.charAt(pos);
+                    }
+                    found = true;
+                }
                 else {
 
                     /*
@@ -200,24 +214,34 @@ public class KeywordMapper {
                                     target += ('+' + message.getWord(j));
                                 }
                             } else if (i == PATTERN_REST_OF_WORDS_INDEX) {
-                                for (int j = 2; j <= message.getWordCount(); j++) {
-                                    target += ('+' + message.getWord(j));
+                            for (int j = word+1; j <= message.getWordCount(); j++) {
+                                target += ((j == word+1 ? "" : '+') + message.getWord(j));
                                 }
                             } else if (i == PATTERN_VAR_INDEX) {
                                 // assume a variable
                                 String ds = m[i].group(1);
 
-                                if (M_PARAM.equals(ds)
-                                    || MSISDN_PARAM.equals(ds)
-                                    || FROM_PARAM.equals(ds)) {
-                                    target += message.getFrom();
-                                } else if (R_PARAM.equals(ds)
-                                    || RECIPIENT_PARAM.equals(ds)
-                                    || TO_PARAM.equals(ds)) {
-                                    target += message.getTo();
-                                } else if (UDH_PARAM.equals(ds)) {
+                                if (M_PARAM.equalsIgnoreCase(ds)
+                                    || MSISDN_PARAM.equalsIgnoreCase(ds)
+                                    || FROM_PARAM.equalsIgnoreCase(ds)) {
+                                    String s = message.getFrom();
+                                    if (s.startsWith("+358")) {
+                                        // for CGW compatibility
+                                        s = "0"+s.substring(4);
+                                    }
+                                    target += s;
+                                } else if (R_PARAM.equalsIgnoreCase(ds)
+                                    || RECIPIENT_PARAM.equalsIgnoreCase(ds)
+                                    || TO_PARAM.equalsIgnoreCase(ds)) {
+                                    String s = message.getTo();
+                                    if (s.startsWith("+358")) {
+                                        // for CGW compatibility
+                                        s = "0"+s.substring(4);
+                                    }
+                                    target += s;
+                                } else if (UDH_PARAM.equalsIgnoreCase(ds)) {
                                     target += message.getUdh();
-                                } else if (MSG_PARAM.equals(ds)) {
+                                } else if (MSG_PARAM.equalsIgnoreCase(ds)) {
                                     target += message.getMsg();
                                 } else {
                                     // ignore unknown param

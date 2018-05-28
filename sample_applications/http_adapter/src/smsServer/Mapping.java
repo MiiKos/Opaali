@@ -50,7 +50,7 @@ public class Mapping {
      *
      */
     public String mapToUrl(String serviceAddress, String keyword) {
-        return mapping.mapToUrl(serviceAddress, keyword);
+        return mapping.mapToUrl(serviceAddress, keyword.toLowerCase());
     }
 
     // = end of public part ===============================================

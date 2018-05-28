@@ -9,7 +9,9 @@
  *
  */
 
- package CgwCompatibility;
+package CgwCompatibility;
+
+import java.net.URLEncoder;
 
 import OpaaliAPI.InboundMMSMessage;
 import OpaaliAPI.InboundMessage;
@@ -122,7 +124,7 @@ public class CgwMessage {
             words = parseWords(msg);
             keyword = words[0];
         }
-        return (words != null && index > 0 && index <= words.length) ? words[index-1] : "";
+        return (words != null && index > 0 && index <= words.length) ? URLEncoder.encode(words[index-1]) : "";
     }
 
     public int getWordCount() {

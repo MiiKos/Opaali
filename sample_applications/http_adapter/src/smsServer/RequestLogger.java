@@ -59,6 +59,8 @@ public class RequestLogger {
                 sb.append(" No Content");
             else if (respCode == 401)
                 sb.append(" Unauthorized");
+            else if (respCode == 500)
+                sb.append(" Server error");
         }
         sb.append(')');
         Log.logInfo(sb.toString());

@@ -139,7 +139,7 @@ public class MessagingAPI {
 
         String[] MTTemplate = {
             // API request for sending MT messages
-            "POST https://${API_HOST}/production/messaging/v1/outbound/${SENDERADDRESS_ENCODED}/requests HTTP/1.1",
+            "POST https://${API_HOST}/${API_MODE}/messaging/v1/outbound/${SENDERADDRESS_ENCODED}/requests HTTP/1.1",
             "Host: ${API_HOST}",
             "Content-type: application/json",
             "Accept: application/json",

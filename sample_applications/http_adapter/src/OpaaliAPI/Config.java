@@ -44,6 +44,7 @@ public class Config {
         // set default config
         configSettings = new HashMap <String, String>();
         configSettings.put("API_HOST", "api.opaali.telia.fi");
+        configSettings.put("API_MODE", "production");
         serviceSettings = new HashMap <String, HashMap<String, String>>();
     }
     

@@ -1,4 +1,4 @@
 
 public class VersionInfo {
-    public static final String versionString = "Opaali http-adapter v0.3.1 beta";
+    public static final String versionString = "Opaali http-adapter v0.3.1+ beta";
 }

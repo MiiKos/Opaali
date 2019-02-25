@@ -17,7 +17,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.net.URLEncoder;
 import java.util.HashMap;
 
 import com.sun.net.httpserver.Headers;
@@ -81,6 +80,16 @@ public class OpaaliApiHandler implements HttpHandler {
         nowait = (sc.getConfigEntryInt(ServerConfig.CONFIG_NOWAIT) != 0);
 
         defaultReplyUrl = sc.getConfigEntry(ServerConfig.CONFIG_DEFAULTREPLYURL);
+        defaultReplyCharset = sc.getConfigEntry(ServerConfig.CONFIG_DEFAULTREPLYCHARSET);
+        if (defaultReplyCharset == null) {
+            defaultReplyCharset = "ISO-8859-15";
+        }
+
+        targetCharset = sc.getConfigEntry(ServerConfig.CONFIG_TARGETCHARSET);
+        if (targetCharset == null) {
+            targetCharset = "ISO-8859-15";
+        }
+
         //qSvc = QueueServiceHandler.create();
 
         if (isValid) {
@@ -106,6 +115,8 @@ public class OpaaliApiHandler implements HttpHandler {
     private boolean nowait = false;
     private QueueService qSvc = null;
     private String defaultReplyUrl = null;
+    private String defaultReplyCharset = null;
+    private String targetCharset = null;
 
     @Override
     public void handle(HttpExchange x) throws IOException {
@@ -219,8 +230,7 @@ public class OpaaliApiHandler implements HttpHandler {
                 String templateUrl = keyMapper.mapKeyword(message.getTo(), message.getKeyword());
 
                 // fill templateUrl from message
-                String targetUrl = KeywordMapper.tmplExpand(templateUrl, message);
-
+                String targetUrl = KeywordMapper.tmplExpand(templateUrl, message, targetCharset);
 
                 String replyUrl = null;
                 if (ServerConfig.SERVICE_TYPE_QR.equalsIgnoreCase(sc.getServiceType())) {
@@ -247,7 +257,7 @@ public class OpaaliApiHandler implements HttpHandler {
 
                     long startTime = RequestLogger.getTimeNow();
 
-                    resp = CgwHttpRequest.get(targetUrl);
+                    resp = CgwHttpRequest.get(targetUrl, targetCharset);
 
                     long endTime = RequestLogger.getTimeNow();
 
@@ -270,9 +280,8 @@ public class OpaaliApiHandler implements HttpHandler {
                                  * which relies the original replyUrl having contained $$(MSG)
                                  * ( $$ is interpreted as escaped $ )
                                  */
-                                // the responseBody must be urlencoded to convert blanks tp '+'
-                                String msgStr = URLEncoder.encode(resp.responseBody);;
-                                replyUrl = KeywordMapper.tmplExpand(replyUrl, new CgwMessage(null,null,null,null,msgStr));
+
+                                replyUrl = KeywordMapper.tmplExpand(replyUrl, new CgwMessage(null,null,null,null,resp.responseBody), defaultReplyCharset);
 
                                 if (QueueServiceHandler.get().submit(null, msg.getMessageId(), replyUrl, null)) {
                                     // submitted to queue

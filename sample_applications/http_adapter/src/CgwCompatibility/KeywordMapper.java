@@ -11,6 +11,8 @@
 
 package CgwCompatibility;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -89,6 +91,14 @@ public class KeywordMapper {
     }
 
 
+    /*
+     * expand macros in URL template with given values (URLencoded for charset if charset is not null)
+     */
+    public static String tmplExpand(String templateUrl, CgwMessage message, String charset) {
+        return fillTemplate(templateUrl, message, charset);
+    }
+
+
     // = end of public part ===============================================
 
     // mappings
@@ -143,6 +153,15 @@ public class KeywordMapper {
      * return as String
      */
     private static String fillTemplate(String template, CgwMessage message) {
+        return fillTemplate(template, message, null);
+    }
+
+    /*
+     * substitute variables with their URLEncoded values in the given template string and
+     * return as String
+     */
+    private static String fillTemplate(String template, CgwMessage message, String charset) {
+
         String target = "";
         int pos = 0;
         int word = 1;
@@ -173,7 +192,7 @@ public class KeywordMapper {
 
                 if (lk == '[' && pos + 2 < template.length() && template.charAt(pos+2) == ']') {
                     // treat $[] as a special case, same as $(number) where number increases
-                    target += message.getWord(++word);
+                    target += encode(message.getWord(++word), charset);
                     // skip to end of variable
                     pos += 3;
                     if (pos < template.length()) {
@@ -186,7 +205,7 @@ public class KeywordMapper {
                     String text = (end > pos+2+4 ? template.substring(pos+6, end) : "");
                     // treat $[DEF:text] as a special case, same as $(number) where number increases 
                     // (and insert text if macro expands to empty)
-                    String w = message.getWord(++word);
+                    String w = encode(message.getWord(++word), charset);
                     target += (w.length() > 0 ? w : text);
                     // skip to end of variable
                     pos = end+1;
@@ -207,15 +226,15 @@ public class KeywordMapper {
                             target += template.substring(pos, m[i].start());
                             if (i == PATTERN_NTH_WORD_INDEX) {
                                 int d = Integer.parseInt(m[i].group(1));
-                                target += message.getWord(d);
+                                target += encode(message.getWord(d), charset);
                             } else if (i == PATTERN_ALL_WORDS_INDEX) {
-                                target += message.getWord(1);
+                                target += encode(message.getWord(1), charset);
                                 for (int j = 2; j <= message.getWordCount(); j++) {
-                                    target += ('+' + message.getWord(j));
+                                    target += ('+' + encode(message.getWord(j), charset));
                                 }
                             } else if (i == PATTERN_REST_OF_WORDS_INDEX) {
-                            for (int j = word+1; j <= message.getWordCount(); j++) {
-                                target += ((j == word+1 ? "" : '+') + message.getWord(j));
+                                for (int j = word+1; j <= message.getWordCount(); j++) {
+                                    target += ((j == word+1 ? "" : '+') + encode(message.getWord(j), charset));
                                 }
                             } else if (i == PATTERN_VAR_INDEX) {
                                 // assume a variable
@@ -242,7 +261,7 @@ public class KeywordMapper {
                                 } else if (UDH_PARAM.equalsIgnoreCase(ds)) {
                                     target += message.getUdh();
                                 } else if (MSG_PARAM.equalsIgnoreCase(ds)) {
-                                    target += message.getMsg();
+                                    target += encode(message.getMsg(), charset);
                                 } else {
                                     // ignore unknown param
                                 }
@@ -291,4 +310,20 @@ public class KeywordMapper {
         return target;
     }
 
+
+    /*
+     * return URLEncoded version of a string (or string as is if cannot be encoded)
+     */
+    private static String encode(String s, String charset) {
+        if (charset != null) {
+            try {
+                return URLEncoder.encode(s, charset);
+	        } catch (UnsupportedEncodingException e) {
+		        return URLEncoder.encode(s);
+	        }
+        }
+        else {
+            return s;
+        }
+    }
 }

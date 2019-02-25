@@ -26,14 +26,20 @@ public class CgwHttpRequest {
             // CGW style HTTP GET request
             "GET ${TARGET_URL} HTTP/1.1",
             "Accept: */*" ,
-            "Character-set: iso8859-1",    // TODO: should this be configurable
+            "Character-set: ${TARGET_CHARSET}",
             "User-Agent: CGW Provider Server 4.0 http_adapter",
             "Host: ${TARGET_HOST}",
             ""
         };
 
+    private static final String defaultCharset = "iso8859-1";
+
 
     public static HttpResponse get(String url) {
+        return get(url, defaultCharset);
+    }
+
+    public static HttpResponse get(String url, String charset) {
 
 
         // get host for host - http header
@@ -45,6 +51,7 @@ public class CgwHttpRequest {
         HashMap <String, String> vars = new HashMap<String, String>();
         vars.put("TARGET_URL", url);
         vars.put("TARGET_HOST", targetHost);
+        vars.put("TARGET_CHARSET", charset);
 
         return HttpRequest.makeRequest(tmpl.expand(vars).toStrings());
 

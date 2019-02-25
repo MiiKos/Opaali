@@ -48,9 +48,11 @@ public class ServerConfig {
     public static final String CONFIG_THREADPOOLSIZE = "threadPoolSize";
     public static final String CONFIG_DEFAULTURL = "defaultUrl";
     public static final String CONFIG_DEFAULTREPLYURL = "defaultReplyUrl";
+    public static final String CONFIG_DEFAULTREPLYCHARSET = "defaultReplyCharset";
     public static final String CONFIG_MAPPINGFILE = "mappingFile";
     public static final String CONFIG_NOWAIT = "nowait";
     public static final String CONFIG_QSIZE = "queueSize";
+    public static final String CONFIG_TARGETCHARSET = "targetCharset";
     
     
     

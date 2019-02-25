@@ -119,6 +119,10 @@ public class HttpRequest {
                 if (key != null || value != null) {
                     Log.logDebug("<"+(key != null ? key+": " : "")+value);
                     headers.put(key, value);
+                    // snoop character set from headers
+                    if ("Content-Type".equalsIgnoreCase(key)) {
+                        charSet = extractCharSet(value, charSet);
+                    }
                 }
                 else {
                     break;

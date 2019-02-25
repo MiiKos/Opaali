@@ -61,6 +61,8 @@ public class HttpRequest {
         try {
             HttpURLConnection conn = (HttpURLConnection) new URL(requestURL).openConnection();
 
+            conn.setReadTimeout(30000);
+
             Log.logDebug(">"+tmpl[0]);
 
             // process http headers up to a blank line
@@ -102,14 +104,15 @@ public class HttpRequest {
                 conn.setDoOutput(false);
             }
 
+            Log.logDebug("socket read timeout is set to "+conn.getReadTimeout());
             
             // get response status
-            try {
+            //try {
                 rc = conn.getResponseCode();
-            } catch (IOException ex) {
-                ex.printStackTrace();
-                Log.logDebug("...ignoring");
-            }
+            //} catch (IOException ex) {
+            //    ex.printStackTrace();
+            //    Log.logDebug("...ignoring");
+            //}
             
             // get optional response headers
             headers = new HashMap<String, String>();
@@ -147,7 +150,8 @@ public class HttpRequest {
             e.printStackTrace();
         } catch (ConnectException e) {
             // TODO Auto-generated catch block
-            e.printStackTrace();
+            Log.logError("Connection to remote host refused");
+            //e.printStackTrace();
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();

@@ -69,14 +69,18 @@ applicationPassword=1%AMCC?u
 # using template URLs with macros filled in
 # (notice that NOT all of the CGW macros are supported)
 #
+# targetCharset specifies the character encoding to be used 
+# for requests to (external) targets (the default is ISO-8859-15) 
+#targetCharset=ISO-8859-15
+
 # a default URL is called when no there is no
 # other matching configuration
 #defaultUrl=http://localhost:80/?msisdn=$(M)&shortnumber=$(R)&keyword=$(1)&msg=$(*)
-#
+
 # a separate mapping file can be used for choosing the target
 # based on keyword and/or short code
 #mappingFile=mappings.txt
-#
+
 #
 # allow caller to request actual processing to be queued for later processing: 0=no, 1=yes
 # this is done by appending /nowait to the request URL
@@ -93,16 +97,17 @@ applicationPassword=1%AMCC?u
 #[opaaliqr:qr]
 # see above for log_mask usage
 ##log_mask=(msisdn,-2,4),(msg,15)
-#
-# see above for defaultUrl and mappingFile usage
+
+# see above for targetCharset, defaultUrl and mappingFile usage
+#targetCharset=ISO-8859-15
 #defaultUrl=http://localhost:80/?msisdn=$(M)&shortnumber=$(R)&keyword=$(1)&msg=$(*)
 #mappingFile=mappings.txt
-#
+
 # see above for nowait usage
 # this affects only the MO notification processing, the MT response is always queued as it requires
 # a separate Opaali API call
 #nowait=0
-#
+
 # defaultReplyUrl is used to specify how the MT message for a Query Reply is sent,
 # this can be the "cgw" service from the top of this configuration file
 # notice how the $(MSG) macro is escaped by doubling the $,
@@ -110,6 +115,9 @@ applicationPassword=1%AMCC?u
 # (for sender/recipient) and again when the message content is available
 #defaultReplyUrl=http://localhost:8081/send?to=$(M)&from=$(R)&msg=$$(MSG)
 
+# defaultReplyCharset specifies the character encoding to be used 
+# for the defaultReplyUrl request (the default is ISO-8859-15) 
+#defaultReplyCharset=ISO-8859-15
 
 # an internal queue is automatically generated so it is not necessary to list here,
 # unless you want to configure a log_mask or need to change the queue size

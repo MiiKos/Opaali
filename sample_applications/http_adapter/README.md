@@ -2,7 +2,7 @@
 
 This is an __HTTP adapter__ which implements enough of the _Content Gateway HTTP interface_ to enable sending and receiving SMS messages through [Opaali](https://developer.opaali.telia.fi/about) instead of Content Gateway. 
 
-From the point of view of your existing application, it can more or less be used as a drop-in replacement for the CGW Provider Server. You will need to rethink the security aspect, as there will not, by default, be a secure encrypted tunnel between the http\_adapter and Opaali like there was between the _CGW Provider Server_ and _CGW Operator Server_.
+From the point of view of your existing application, this can more or less be used as a drop-in replacement for the CGW Provider Server. You will need to rethink the security aspect, as there will not, by default, be a secure encrypted tunnel between the http\_adapter and Opaali like there was between the _CGW Provider Server_ and _CGW Operator Server_.
 
 While this software was _intended for making the migration_ from Content Gateway to Opaali easier (_so you don't need to rewrite all of your existing service application_) you can also use it as an easier interface to Opaali (_if you want to avoid learning to use the REST API..._). 
 

@@ -1,10 +1,18 @@
 # HTTP adapter
 
-This is an early version of an __HTTP adapter__ which will implement (as much as possible) the _Content Gateway HTTP interface_ for sending and receiving SMS messages.
+This is an __HTTP adapter__ which implements enough of the _Content Gateway HTTP interface_ to enable sending and receiving SMS messages through [Opaali](https://developer.opaali.telia.fi/about) instead of Content Gateway. 
 
-The source code (written in _Java version 8_) will be published in several steps and the first version will have very limited functionality. The code will also be virtually untested at first (read: __probably buggy__) so if you are not an adventurous mind you may be better off not trying to run the latest code by yourself.
+From the point of view of your existing application, it can more or less be used as a drop-in replacement for the CGW Provider Server. You will need to rethink the security aspect, as there will not, by default, be a secure encrypted tunnel between the http\_adapter and Opaali like there was between the _CGW Provider Server_ and _CGW Operator Server_.
 
-This is work in progress. Eventually we hope this will result in a useful application that you can run in place of your current Content Gateway Provider Server. Or you can use it as an example while writing your own Java code.
+While this software was _intended for making the migration_ from Content Gateway to Opaali easier (_so you don't need to rewrite all of your existing service application_) you can also use it as an easier interface to Opaali (_if you want to avoid learning to use the REST API..._). 
+
+The source code (written in _Java version 8_) is available for you to use, but _there will be __no__ official support for this code by Telia_!
+
+However, as the http\_adapter is (_at the time of writing this_) used in migration of some internal services, there is a good chance that it actually works and bugs may get fixed. In any case: _the source code is here so you can modify and fix it by yourself or have someone fix it for you_. 
+
+For documentation, your best source at the moment is the __http_adapter__ related articles published in the [Opaali Blog](https://miikos.github.io/Opaali/indexall/).
+
+----
 
 And remember: _there will be __no__ official support for this code by Telia_!
 
@@ -62,20 +70,30 @@ You have probably used Content Gateway before so you should know how to send a m
 Here is an example, anyway:
 ![sending an sms](screenshots/sending_an_sms.png)
 
-Initially the only supported parameters were _to_, _from_ and _msg_.
+### Mandatory parameters
+
+The parameters _to_, _from_ and _msg_ must always be supplied when sending a message:
 
 ```
 http://<host>:<port>/send?to=<recipient>&from=<sender>&msg=<message content>
 ```
 
-Since then support for sending flash text messages has been added. This can be done by adding parameter _mcl=0_:
+### Sending flash messages
+
+You can send _flash text messages_ by adding parameter _mcl=0_:
 
 ```
 http://<host>:<port>/send?to=<recipient>&from=<sender>&msg=<flash message content>&mcl=0
 ```
+
+### Sending binary messages
 
 There is also support for sending binary messages by adding parameter _bin_. You should specify the binary message content in hexadecimal, and typically you will also want to add a _User Data Header_ in hexadecimal using parameter _udh_.
 
 ```
 http://<host>:<port>/send?to=<recipient>&from=<sender>&msg=<binary message content>&udh=<User Data Header>&bin
 ```
+
+### Testing without actually sending
+
+You can add the parameter _validateonly_ to have the parameters validated _without actually sending a text message_. This can be useful for checking that the built-in _http-server_ is still working.

@@ -87,15 +87,15 @@ Host: localhost
 
 You will need to have  a Java 8 compatible runtime environment to run the _http\_adapter_.
 
-###1. Download the Software
+### 1. Download the Software
 
 You can find pre-built _http\_adapter_ releases from the Release page: https://github.com/MiiKos/Opaali/releases 
 
-###2. Basic Configuration
+### 2. Basic Configuration
 
 Download this [sample config file](https://github.com/MiiKos/Opaali/blob/master/sample_applications/http_adapter/config/config.sample) to the same directory and edit your own credentials to it. Then rename the file to ```config.txt```.
 
-###3. Run!
+### 3. Run!
 Start the SmsServer from a command line (check the actual file name of your downloaded jar file):
 ```
    $ java -jar SmsServer.jar
@@ -119,7 +119,7 @@ http://localhost:80/send?from=1234&to=0101234567&msg=Hello
 You can also test this using a web browser. See the __Reference Manual__ for details of the parameters.
 
 
-#Reference Manual
+# Reference Manual
 
 ## Configuration file
 
@@ -197,7 +197,11 @@ Mandatory Parameters are shown in __bold__.
 # character set for CGW API side
 cgwCharset=ISO-8859-1
 #cgwCharset=UTF-8
+...
+# character set for Opaali Notifications side
+opaaliCharset=UTF-8
 ```
+If the default character settings are not compatible with your platform or your backend service, many of the services enable adjusting the character set by yourself. The syntax is the same, but the name of the variable varies by service.
 
 ### Log file configuration
 ```
@@ -208,6 +212,15 @@ cgwCharset=ISO-8859-1
 # -length is optional, if omitted applies mask until the end/start of value
 #log_mask=(to,-2,4),(msg,15)
 ```
+
+A _log_mask_ can be used to hide personal details from URLs in the log file
+- a mask is defined inside parentheses, you can have a list of masks
+- a mask starts with a URL parameter name
+- followed by the starting position of data to be hidden (starting from left, unless when negative starting from right)
+- followed by optional length, if missing mask is applied to the end/start of the value
+
+__Note:__ You will need to specify the same _log_mask_ for each service that writes the URL to the log, otherwise the data will be revealed at some point. (_case in point: remember to add the log\_mask to the queue service!_)
+
 
 
 ## send service specific settings
@@ -225,12 +238,8 @@ Mandatory Parameters are shown in __bold__.
 |cgwCharset| character set name | sets the character encoding used by the http server |
 |__applicationUserName__| string | username from the _Manage Endpoints_ section of your _Application Profile_ in the _Developer Portal_|
 |__applicationPassword__| string | password from the _Manage Endpoints_ section of your _Application Profile_ in the _Developer Portal_|
-|log_mask| 
-- the log_mask can be used to hide personal details from URLs in the log file
-- a mask is defined inside parentheses, you can have a list of masks
-- a mask starts with a URL parameter name
-- followed by the starting position of data to be hidden (starting from left, unless when negative starting from right)
-- followed by optional length, if missing mask is applied to the end/start of the value
+|log_mask| string | see _Log file configuration_ above|
+
 
 
 ## receive service specific settings
@@ -238,7 +247,7 @@ Mandatory Parameters are shown in __bold__.
 |Parameter |Value |Definition|
 |----------|------|----------|
 |opaaliCharset| character set name | sets the character encoding used by the http server |
-|log_mask  |
+|log_mask| string | see _Log file configuration_ above|
 |defaultUrl| URL | the default URL to be called to pass on the received message to a backend service|
 |mappingFile| filename | a separate file for more detailed backend service configuration |
 |nowait     | 0,1 | 0=asynchronous mode <br/> 1=syncronous mode (default) |
@@ -254,7 +263,7 @@ Mandatory Parameters are shown in __bold__.
 |Parameter |Value |Definition|
 |----------|------|----------|
 |queueSize | small integer | how many requests can be queued simultaneously|
-|log_mask  |
+|log_mask| string | see _Log file configuration_ above|
 
 
 

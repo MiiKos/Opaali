@@ -1,5 +1,5 @@
 # HTTP_ADAPTER REFERENCE MANUAL
-####(work in progress...)
+
 
 # Introduction
 
@@ -244,21 +244,43 @@ Mandatory Parameters are shown in __bold__.
 
 ## receive service specific settings
 
+Mandatory Parameters are shown in __bold__.
+
 |Parameter |Value |Definition|
 |----------|------|----------|
 |opaaliCharset| character set name | sets the character encoding used by the http server |
 |log_mask| string | see _Log file configuration_ above|
-|defaultUrl| URL | the default URL to be called to pass on the received message to a backend service|
+|__defaultUrl__| URL | the default URL to be called to pass on the received message to a backend service|
 |mappingFile| filename | a separate file for more detailed backend service configuration |
 |nowait     | 0,1 | 0=asynchronous mode <br/> 1=syncronous mode (default) |
-- adding _nowait_ configuration entry you can turn asynchronous mode on (1) or off (0)
 
-
+__Note:__ _defaultUrl_ is always mandatory, although you can override it using the _mappingFile_.
 
 
 ## qr service specific settings
 
+This service has the same parameters as _receive service_, with the addition of _defaultReplyUrl_ which is used for sending a reply back to the mobile phone.
+
+Mandatory Parameters are shown in __bold__.
+
+|Parameter |Value |Definition|
+|----------|------|----------|
+|opaaliCharset| character set name | sets the character encoding used by the http server |
+|log_mask| string | see _Log file configuration_ above|
+|__defaultUrl__| URL | the default URL to be called to pass on the received message to a backend service|
+|mappingFile| filename | a separate file for more detailed backend service configuration |
+|nowait     | 0,1 | 0=asynchronous mode <br/> 1=syncronous mode (default) |
+|__defaultReplyUrl__| URL | the URL for sending a MT reply|
+
+You can use an external system or the _send service_ of the http_adapter for sending the MT message. The _defaultReplyUrl_ can use the same _macro variables_ as in _defaultUrl_, but it will be expanded in two phases:
+1. when the query has been received, where we can extract the sender _msisdn_ and the service _short code_
+2. when the response is being sent, where we can insert the response message
+
+Due to this _two phase macro expansion_ the macros to be expanded at the response phase need to have their '$' character doubled as "$$" (e.g. $$(MSG)).
+
 ## internal queue specific settings
+
+The internal queue is started automatically, but you will want to make sure that the _log_mask_ is the same as in _receive_ or _qr_ service.
 
 |Parameter |Value |Definition|
 |----------|------|----------|
@@ -266,10 +288,56 @@ Mandatory Parameters are shown in __bold__.
 |log_mask| string | see _Log file configuration_ above|
 
 
-
 ## A Mapping file for configuring the handling of inbound services
 
-(_...you can use a mapping file...details to be added..._)
+The _mapping file_ is a separate file where you can specify _short code_ specific mappings to backend URLs and optionally _keyword_ specific mappings to URLs.
+The purpose of these mappings is to provide similar functionality that you could configure using the _Provider Admin UI_ in Content Gateway. 
+- the file contains ___sections___ starting with a _short code_ inside brackets
+- all the following configuration lines are specific to this short code
+- if there are more than one consecutive _section lines_ before an actual URL mapping then these are interpreted as a _list of short codes_ for which the mappings will apply
+- there is a _global section_ before the first explicit _short code section_ which is applied to _any short code_ if none of the _more specific_ rules fits
+- a mapping is of the format _keyword_=_URL template_, where __@__ matches to any keyword   
+
+##### An example of a mapping file:
+```
+# This is a mapping configuration file from
+# - service_address and keyword to a target URL template
+# - keyword to a target URL template
+#
+# The mappings are specified as lines containing
+# SERVICE_KEYWORD=APPLICATION_URI
+#
+# a default mapping is specified using special keyword @
+# (you can only have one default mapping for a set of service addresses)
+# @=APPLICATION_URI
+#
+# mapping lines at the beginning of this file are applied to any service address
+#
+# to specify service address specific mappings you insert any number of service address lines
+# in front of the mapping lines, like this:
+# [SERVICE_ADDRESS]
+# SERVICE_KEYWORD=APPLICATION_URI
+#
+# mapping lines are applied to the preceding service address line or lines until the next 
+# batch of service address lines
+#
+# service address specific mappings take precedence over service address independent mappings
+#
+# the following mappings are applied to all service addresses 
+testi=http://localhost:8080/$(msisdn)?msg=$(msg)
+
+
+# all the rest of the mappings are tied to one or more service addresses
+[12345]
+INFO=http://localhost:28077/tfolsms/sms.do?sender=$(M)&recp=$(R)&msg=$(MSG)
+TILAA=http://localhost:28077/tfolsms/sms.do?sender=$(M)&recp=$(R)&msg=$(MSG)&tilaa=yes
+
+[1234]
+[54321]
+@=http://localhost/testi/$(R)/$(M)
+
+```
+
 
 ### The CGW Parameters supported by the _send_ service
 
